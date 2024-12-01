@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 import os
 import json
-from utils.constants import WINDOW_SIZE, BUTTONS, ICONS
+from utils.constants import WINDOW_SIZE
 
 
 class GestureScreen:
@@ -75,18 +75,17 @@ class GestureScreen:
         gesture_img_path = os.path.join(
             self.assets_dir, f"gesture_{self.current_gesture_index + 1}.jpg"
         )
-        # print(f"正在嘗試載入圖片: {gesture_img_path}")
         if os.path.exists(gesture_img_path):
             gesture_img = cv2.imread(gesture_img_path)
-            if gesture_img is None:
-                print(f"無法讀取圖片內容，可能圖片格式有問題: {gesture_img_path}")
-            else:
+            if gesture_img is not None:
                 gesture_img = cv2.resize(gesture_img, (320, 320))
                 frame[100:420, 750:1070] = gesture_img
-        else:
-            print(f"圖片檔案不存在: {gesture_img_path}")
 
         # 按鈕區域
+        self._draw_buttons(frame)
+
+    def _draw_buttons(self, frame):
+        """繪製按鈕"""
         confirm_button_x, confirm_button_y = 500, 600
         back_button_x, back_button_y = 200, 600
 
@@ -153,18 +152,23 @@ class GestureScreen:
             rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             results = self.hands.process(rgb_image)
 
-            if results.multi_hand_landmarks:
-                hand_landmarks = results.multi_hand_landmarks[0]
-                landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
-                self.gesture_data.append(
-                    {
-                        "gesture": self.gesture_names[self.current_gesture_index],
-                        "landmarks": landmarks,
-                    }
-                )
+            if results.multi_hand_landmarks and results.multi_handedness:
+                for hand_landmarks, handedness in zip(
+                    results.multi_hand_landmarks, results.multi_handedness
+                ):
+                    landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                    hand_label = handedness.classification[0].label  # "Left" 或 "Right"
+
+                    self.gesture_data.append(
+                        {
+                            "gesture": self.gesture_names[self.current_gesture_index],
+                            "hand": hand_label,
+                            "landmarks": landmarks,
+                        }
+                    )
 
                 # 儲存資料至檔案
-                os.makedirs(self.assets_dir, exist_ok=True)
-                file_path = os.path.join(self.assets_dir, "gesture_data.json")
+                os.makedirs("assets", exist_ok=True)
+                file_path = os.path.join("assets", "gesture_data.json")
                 with open(file_path, "w") as f:
                     json.dump(self.gesture_data, f, indent=4)
