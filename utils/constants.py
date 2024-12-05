@@ -1,7 +1,8 @@
-WINDOW_SIZE = (800, 600)
-BUTTONS = ['Add', 'Practice', 'Challenge']
+WINDOW_SIZE = (1280, 720)
+BUTTONS = ["Setting", "Add", "Practice", "Challenge"]
 ICONS = [
-    'assets/icons/icon_add.png',
-    'assets/icons/icon_training.png',
-    'assets/icons/icon_challenge.png'
+    "assets/icons/icon_setting.png",
+    "assets/icons/icon_add.png",
+    "assets/icons/icon_training.png",
+    "assets/icons/icon_challenge.png",
 ]
