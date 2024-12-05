@@ -73,7 +73,7 @@ class HomeScreen(BaseScreen):
                 else:
                     self.selected_index = i
                     if BUTTONS[i] == "Setting":
-                        self.callback("gesture_screen")
+                        self.callback("gesture_input_screen")
                     else:
                         self.callback("mode", i)
                 break

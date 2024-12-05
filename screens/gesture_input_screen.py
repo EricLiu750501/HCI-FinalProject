@@ -7,8 +7,8 @@ import json
 from utils.constants import WINDOW_SIZE
 
 # Declare some Constant for testing
-Hand_Detection_Confidence = 0.8
-Hand_Tracking_Confidence = 0.5
+Hand_Detection_Confidence = 0.1
+Hand_Tracking_Confidence = 0.1
 
 class GestureInputScreen:
     def __init__(self, callback):

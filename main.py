@@ -79,7 +79,15 @@ class GameManager:
                 self.running = False
 
         cv2.destroyAllWindows()
-
+        # for gest in self.gestures:
+        #     print(f"{gest['gesture_name']}: ")
+        #     print("Right: ")
+        #     for right_d in gest["right_hand_d"]:
+        #         print(right_d)
+            
+        #     print("left: ")
+        #     for left_d in gest["left_hand_d"]:
+        #         print(left_d)
 
 if __name__ == "__main__":
     game = GameManager()
