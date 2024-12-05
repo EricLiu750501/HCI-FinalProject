@@ -4,6 +4,7 @@ import numpy as np
 import pygame
 from screens.home_screen import HomeScreen
 from screens.mode_screen import ModeScreen
+from screens.gesture_input_screen import GestureInputScreen
 from utils.constants import WINDOW_SIZE
 
 class GameManager:
@@ -23,7 +24,11 @@ class GameManager:
         # Initialize screens
         self.home_screen = HomeScreen(self._handle_button_click)
         self.mode_screen = ModeScreen(self._handle_button_click)
+        self.gesture_input_screen = GestureInputScreen(self._handle_button_click)
         self.current_screen = self.home_screen
+        
+        # Init Variables
+        self.gestures = []
         
         # State
         self.running = True
@@ -36,6 +41,10 @@ class GameManager:
         """Handle button clicks and screen transitions"""
         if action == "exit":
             self.running = False
+        elif action == "gesture_input_screen":
+            self.current_screen = self.gesture_input_screen
+        elif action == "get_gesture_input":
+            self.gestures.append(self.gesture_input_screen.get_cur_input_gesture())
         elif action == "mode":
             self.mode_screen.set_mode(data)  # data contains the selected mode index
             self.current_screen = self.mode_screen
