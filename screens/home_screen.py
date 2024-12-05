@@ -1,6 +1,6 @@
 # screens/home_screen.py
 import cv2
-from .base_screen import BaseScreen
+from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE, BUTTONS, ICONS
 from utils.drawing import draw_button
 
