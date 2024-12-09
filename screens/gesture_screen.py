@@ -1,25 +1,46 @@
 import cv2
-import mediapipe as mp
 import numpy as np
 import os
 import json
+import time
+import copy
+import csv
 from utils.constants import WINDOW_SIZE
+from model.yolox.yolox_onnx import YoloxONNX
 
 
 class GestureScreen:
     def __init__(self, callback):
         self.callback = callback
-        self.cap = cv2.VideoCapture(0)  # 開啟預設攝影機
+
+        # Camera setup
+        self.cap = cv2.VideoCapture(0)  # Open default camera
         if not self.cap.isOpened():
-            print("無法開啟攝影機，請檢查設備。")
+            print("Cannot open camera, please check the device.")
             self.cap = None
 
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(
-            static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5
+        # YOLOX model setup
+        model_path = "model/yolox/yolox_nano.onnx"
+        input_shape = (416, 416)
+        score_th = 0.7
+        nms_th = 0.45
+        nms_score_th = 0.1
+
+        self.yolox = YoloxONNX(
+            model_path=model_path,
+            input_shape=input_shape,
+            class_score_th=score_th,
+            nms_th=nms_th,
+            nms_score_th=nms_score_th,
         )
-        self.drawing_utils = mp.solutions.drawing_utils
-        self.gesture_data = []  # 儲存手勢資料
+
+        # Load labels
+        with open("setting/labels.csv", encoding="utf8") as f:
+            labels = csv.reader(f)
+            self.labels = [row for row in labels]
+
+        # Gesture-related attributes
+        self.gesture_data = []  # Store gesture data
         self.gesture_names = [
             "子",
             "丑",
@@ -37,13 +58,19 @@ class GestureScreen:
         self.current_gesture_index = 0
         self.assets_dir = "assets/images"
 
+        # Frame count for detection optimization
+        self.frame_count = 0
+        self.skip_frame = 0
+
     def draw(self, frame):
-        """使用 OpenCV 繪製 UI"""
+        """Draw UI using OpenCV"""
         frame.fill(0)
-        frame[:] = (50, 50, 50)  # 全畫面填充灰色
-        # 左右分隔線
+        frame[:] = (50, 50, 50)  # Fill frame with gray
+
+        # Vertical separator line
         cv2.line(frame, (700, 0), (700, WINDOW_SIZE[1]), (200, 200, 200), 2)
-        # 在畫面上方顯示進度
+
+        # Display progress
         progress_text = f"{self.current_gesture_index + 1}/{len(self.gesture_names)} {self.gesture_names[self.current_gesture_index]}"
         cv2.putText(
             frame,
@@ -55,23 +82,43 @@ class GestureScreen:
             2,
         )
 
-        # 左側: 攝影機畫面
+        # Left side: Camera frame
         success, image = self.cap.read()
         if success:
             image = cv2.flip(image, 1)
-            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            results = self.hands.process(rgb_image)
+            debug_image = copy.deepcopy(image)
 
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    self.drawing_utils.draw_landmarks(
-                        image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS
+            # Object detection
+            self.frame_count += 1
+            if (self.frame_count % (self.skip_frame + 1)) == 0:
+                bboxes, scores, class_ids = self.yolox.inference(image)
+
+                for bbox, score, class_id in zip(bboxes, scores, class_ids):
+                    class_id = int(class_id) + 1
+                    if score < 0.7:
+                        continue
+
+                    # Visualization
+                    x1, y1 = int(bbox[0]), int(bbox[1])
+                    x2, y2 = int(bbox[2]), int(bbox[3])
+
+                    cv2.putText(
+                        debug_image,
+                        f"ID:{class_id} {self.labels[class_id][0]} {score:.3f}",
+                        (x1, y1 - 15),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6,
+                        (0, 255, 0),
+                        2,
+                        cv2.LINE_AA,
                     )
+                    cv2.rectangle(debug_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-            image = cv2.resize(image, (640, 480))
+            # Resize and place camera frame
+            image = cv2.resize(debug_image, (640, 480))
             frame[50:530, 50:690] = image
 
-        # 右側: 示意圖
+        # Right side: Gesture reference image
         gesture_img_path = os.path.join(
             self.assets_dir, f"gesture_{self.current_gesture_index + 1}.jpg"
         )
@@ -81,14 +128,15 @@ class GestureScreen:
                 gesture_img = cv2.resize(gesture_img, (320, 320))
                 frame[100:420, 750:1070] = gesture_img
 
-        # 按鈕區域
+        # Draw buttons
         self._draw_buttons(frame)
 
     def _draw_buttons(self, frame):
-        """繪製按鈕"""
+        """Draw buttons"""
         confirm_button_x, confirm_button_y = 500, 600
         back_button_x, back_button_y = 200, 600
 
+        # Confirm button
         cv2.rectangle(
             frame,
             (confirm_button_x, confirm_button_y),
@@ -106,6 +154,7 @@ class GestureScreen:
             2,
         )
 
+        # Back button
         cv2.rectangle(
             frame,
             (back_button_x, back_button_y),
@@ -124,7 +173,7 @@ class GestureScreen:
         )
 
     def handle_click(self, x, y):
-        """處理點擊事件"""
+        """Handle click events"""
         confirm_button_x, confirm_button_y = 500, 600
         back_button_x, back_button_y = 200, 600
 
@@ -145,30 +194,45 @@ class GestureScreen:
             self.callback("back")
 
     def _save_gesture(self):
-        """儲存手勢數據"""
+        """Save gesture data"""
         success, image = self.cap.read()
         if success:
             image = cv2.flip(image, 1)
-            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            results = self.hands.process(rgb_image)
 
-            if results.multi_hand_landmarks and results.multi_handedness:
-                for hand_landmarks, handedness in zip(
-                    results.multi_hand_landmarks, results.multi_handedness
-                ):
-                    landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
-                    hand_label = handedness.classification[0].label  # "Left" 或 "Right"
+            # Detect objects
+            bboxes, scores, class_ids = self.yolox.inference(image)
 
-                    self.gesture_data.append(
-                        {
-                            "gesture": self.gesture_names[self.current_gesture_index],
-                            "hand": hand_label,
-                            "landmarks": landmarks,
-                        }
-                    )
+            # Prepare to store detected objects
+            detected_objects = []
 
-                # 儲存資料至檔案
-                os.makedirs("assets", exist_ok=True)
-                file_path = os.path.join("assets", "gesture_data.json")
-                with open(file_path, "w") as f:
-                    json.dump(self.gesture_data, f, indent=4)
+            for bbox, score, class_id in zip(bboxes, scores, class_ids):
+                if score < 0.7:
+                    continue
+
+                detected_objects.append(
+                    {
+                        "gesture": self.gesture_names[self.current_gesture_index],
+                        "class_id": int(class_id) + 1,
+                        "label": self.labels[int(class_id) + 1][0],
+                        "bbox": [float(x) for x in bbox],
+                        "score": float(score),
+                    }
+                )
+
+            # Save data to file
+            os.makedirs("assets", exist_ok=True)
+            file_path = os.path.join("assets", "gesture_data.json")
+
+            # Load existing data or create new list
+            try:
+                with open(file_path, "r") as f:
+                    existing_data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                existing_data = []
+
+            # Append new data
+            existing_data.extend(detected_objects)
+
+            # Save updated data
+            with open(file_path, "w") as f:
+                json.dump(existing_data, f, indent=4)
