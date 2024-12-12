@@ -3,8 +3,11 @@ import cv2
 import numpy as np
 import pygame
 from screens.home_screen import HomeScreen
-from screens.mode_screen import ModeScreen
 from screens.gesture_screen import GestureScreen
+from screens.practice.practice_screen import PracticeScreen
+from screens.add.add_gesture_screen import AddGestureScreen
+from screens.check.check_gesture_screen import CheckGestureScreen
+from screens.edit.edit_screen import EditScreen
 from utils.constants import WINDOW_SIZE
 
 
@@ -24,8 +27,10 @@ class GameManager:
 
         # Initialize screens
         self.home_screen = HomeScreen(self._handle_button_click)
-        self.mode_screen = ModeScreen(self._handle_button_click)
-        self.gesture_screen = GestureScreen(self._handle_button_click)
+        self.add_gesture_screen = AddGestureScreen(self._handle_button_click)
+        self.check_gesture_screen = CheckGestureScreen(self._handle_button_click)
+        self.edit_screen = EditScreen(self._handle_button_click)
+        self.practice_screen = PracticeScreen(self._handle_button_click)
         self.current_screen = self.home_screen
 
         # State
@@ -39,8 +44,21 @@ class GameManager:
         """Handle button clicks and screen transitions"""
         if action == "exit":
             self.running = False
+        elif action == "add_gesture":
+            self.current_screen = self.add_gesture_screen
+            pygame.mixer.Sound.play(self.click_sound)
+        elif action == "check_gesture":
+            self.current_screen = self.check_gesture_screen
+            pygame.mixer.Sound.play(self.click_sound)
+        elif action == "edit":
+            self.current_screen = self.edit_screen
+            pygame.mixer.Sound.play(self.click_sound)
         elif action == "gesture_screen":
             self.current_screen = self.gesture_screen
+            pygame.mixer.Sound.play(self.click_sound)
+        elif action == "practice_screen":
+            self.current_screen = self.practice_screen
+            pygame.mixer.Sound.play(self.click_sound)
         elif action == "mode":
             self.mode_screen.set_mode(data)  # data contains the selected mode index
             self.current_screen = self.mode_screen

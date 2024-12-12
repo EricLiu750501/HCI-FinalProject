@@ -3,12 +3,16 @@ import cv2
 from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE, BUTTONS, ICONS
 from utils.drawing import draw_button
+from utils.CvDrawText import CvDrawText
 
 
 class HomeScreen(BaseScreen):
     def __init__(self, callback):
         super().__init__(callback)
         self.selected_index = 0
+        self.font_path = "C:/Windows/Fonts/msjh.ttc"
+        # 中文按鈕標題
+        self.button_titles = ["新增手勢", "檢查手勢", "編輯", "練習"]
 
     def draw(self, frame):
         self.button_areas = []
@@ -72,8 +76,12 @@ class HomeScreen(BaseScreen):
                     self.callback("exit")
                 else:
                     self.selected_index = i
-                    if BUTTONS[i] == "Setting":
-                        self.callback("gesture_screen")
-                    else:
-                        self.callback("mode", i)
+                    if BUTTONS[i] == "Add Gesture":
+                        self.callback("add_gesture")
+                    elif BUTTONS[i] == "Check Gesture":
+                        self.callback("check_gesture")
+                    elif BUTTONS[i] == "Edit":
+                        self.callback("edit")
+                    elif BUTTONS[i] == "Practice":
+                        self.callback("practice_screen")
                 break
