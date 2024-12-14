@@ -76,7 +76,7 @@ class PracticeScreen(BaseScreen):
         # 右側顯示忍術列表
         y_offset = 100
         for jutsu_jp, jutsu_en in self.jutsu_list:
-            temp_frame = CvDrawText.puttext(
+            CvDrawText.puttext(
                 temp_frame,
                 jutsu_jp,
                 (750, y_offset),
@@ -108,7 +108,7 @@ class PracticeScreen(BaseScreen):
 
         # 添加提示文字
         status_text = "點擊開始錄音" if not self.is_recording else "點擊停止錄音"
-        temp_frame = CvDrawText.puttext(
+        CvDrawText.puttext(
             temp_frame,
             status_text,
             (mic_x - 30, mic_y + 220),
@@ -125,7 +125,7 @@ class PracticeScreen(BaseScreen):
         cv2.rectangle(
             temp_frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
         )
-        temp_frame = CvDrawText.puttext(
+        CvDrawText.puttext(
             temp_frame,
             "返回",
             (back_x + 70, back_y + 10),
