@@ -17,7 +17,7 @@ class EditScreen(BaseScreen):
         temp_frame[:] = (255, 255, 255)  # 白色背景
 
         # 添加標題
-        temp_frame = CvDrawText.puttext(
+        CvDrawText.puttext(
             temp_frame, "編輯手勢", (100, 100), self.font_path, 48, color=(0, 0, 0)
         )
 
@@ -26,7 +26,7 @@ class EditScreen(BaseScreen):
         cv2.rectangle(
             temp_frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
         )
-        temp_frame = CvDrawText.puttext(
+        CvDrawText.puttext(
             temp_frame,
             "返回",
             (back_x + 70, back_y + 10),

@@ -4,7 +4,7 @@ import numpy as np
 import pygame
 from screens.home_screen import HomeScreen
 # from screens.gesture_screen import GestureScreen
-# from screens.practice.practice_screen import PracticeScreen
+from screens.practice.practice_screen import PracticeScreen
 from screens.gesture_model_screen import GestureScreen
 from screens.add.add_gesture_screen import AddGestureScreen
 from screens.check.check_gesture_screen import CheckGestureScreen
@@ -33,7 +33,7 @@ class GameManager:
         self.edit_screen = EditScreen(self._handle_button_click)
         
         self.gesture_screen_model = GestureScreen(self._handle_button_click)
-        # self.practice_screen = PracticeScreen(self._handle_button_click)
+        self.practice_screen = PracticeScreen(self._handle_button_click)
         self.current_screen = self.home_screen
 
         # State
