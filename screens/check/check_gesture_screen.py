@@ -16,6 +16,8 @@ class CheckGestureScreen(BaseScreen):
         super().__init__(callback)
         
         # init some private varibles here
+        self.DETECTION_CONFIDENCE = 0.6  # for naruto gestures
+        self.DETECTION_MIN_D = 0.05      # for added gestures
         self.font_path = "C:/Windows/Fonts/msjh.ttc"
         self.button_areas = []
         
@@ -47,13 +49,72 @@ class CheckGestureScreen(BaseScreen):
 
 
     def draw(self, frame):
-        frame[:] = (255, 255, 255)  # white BG
+        frame[:] = (150, 150, 150)  # white BG
 
         # add title
-        frame[:] = CvDrawText.puttext(
-            frame, "檢查手勢", (100, 100), self.font_path, 48, color=(0, 0, 0)
+        CvDrawText.puttext(
+            frame, "檢查手勢", (10, 10), self.font_path, 48, color=(0, 0, 0)
         )
-    
+        
+        # start showing the cam frame
+        ret, image = self.cap.read()
+        
+        if ret:
+            image = cv2.flip(image, 1)
+            detected = False
+            
+            boxes, scores, g_ids = self.yolox.inference(image)  # g_ids stands for gesture ids
+            
+            for box, score, g_id in zip(boxes, scores, g_ids):
+                g_id = int(g_id) + 1  # add 1 because of labels.csv starts from none
+                detected = False
+                
+                if score < self.DETECTION_CONFIDENCE:
+                    continue
+                else:
+                    detected = True
+                
+                x1, y1 = int(box[0]), int(box[1])
+                x2, y2 = int(box[2]), int(box[3])
+                
+                cv2.putText(
+                    image,
+                    f"{self.labels[g_id][0]} {score:.3f}",
+                    (x1, y1 - 15),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (0, 0, 0),
+                    2,
+                    cv2.LINE_AA,
+                )
+                # CvDrawText.puttext(
+                #     image,
+                #     f"ID:{self.labels[g_id][0]}, {score:.3f}",
+                #     (x1, y1 - 15),
+                #     self.font_path,
+                #     0.6,
+                #     (0, 0, 0),
+                # )
+                cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                
+                if detected:
+                    # draw result
+                    start_x = 350
+                    start_y = WINDOW_SIZE[1] - 90
+                    
+                    CvDrawText.puttext(
+                        frame,
+                        f"Gesture's ID: {g_id}, Gesture's Name: {self.labels[g_id][0]}, Confidence: {score:.3f}",
+                        (start_x, start_y),
+                        self.font_path,
+                        30,
+                        (0, 0, 0),
+                    )
+                
+            # resize the cam frame to fit the frame
+            frame[70:70+480, 300:300+640] = cv2.resize(image, (640, 480))
+
+        # draw buttons  
         self.draw_buttons(frame)
         
     
@@ -69,7 +130,7 @@ class CheckGestureScreen(BaseScreen):
             frame, (back_x, back_y), (back_x + btn_width, back_y + btn_height), (0, 0, 255), -1
         )
         
-        frame[:] = CvDrawText.puttext(
+        CvDrawText.puttext(
             frame,
             "返回",
             (back_x + 70, back_y + 10),
