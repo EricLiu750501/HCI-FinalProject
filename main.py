@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import pygame
 from screens.home_screen import HomeScreen
+
 # from screens.gesture_screen import GestureScreen
 from screens.practice.practice_screen import PracticeScreen
 from screens.gesture_model_screen import GestureScreen
@@ -31,13 +32,16 @@ class GameManager:
         self.add_gesture_screen = AddGestureScreen(self._handle_button_click)
         self.check_gesture_screen = CheckGestureScreen(self._handle_button_click)
         self.edit_screen = EditScreen(self._handle_button_click)
-        
+
         self.gesture_screen_model = GestureScreen(self._handle_button_click)
         self.practice_screen = PracticeScreen(self._handle_button_click)
         self.current_screen = self.home_screen
 
         # State
         self.running = True
+
+        # Detected jutsu
+        self.detected_jutsu = -1
 
     def _mouse_callback(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -65,6 +69,10 @@ class GameManager:
         elif action == "back":
             self.current_screen = self.home_screen
             pygame.mixer.Sound.play(self.click_sound)
+        elif action == "jutsu_detected":
+            # 更新 detected_jutsu 為忍術編號
+            self.detected_jutsu = data
+            print(f"偵測到忍術編號: {data}")
 
     def run(self):
         while self.running:
