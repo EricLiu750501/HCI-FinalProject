@@ -51,14 +51,12 @@ class PracticeScreen(BaseScreen):
                 self.recognizer.adjust_for_ambient_noise(source)
                 try:
                     audio = self.recognizer.listen(source, timeout=1)
-                    text = self.recognizer.recognize_google(audio, language="ja-JP")
+                    text = self.recognizer.recognize_google(audio, language="zh-TW")
 
-                    # 檢查是否說出了任何忍術名稱
-                    for jutsu_jp, _ in self.jutsu_list:
-                        if text.lower() in jutsu_jp.lower():
-                            # 找到對應的jutsu ID
-                            jutsu_id = self.jutsu_list.index((jutsu_jp, _))
-                            self.callback("jutsu_detected", jutsu_id)
+                    for jutsu_cn, _ in self.jutsu_list:
+                        if text in jutsu_cn:
+                            self.detected_jutsu = jutsu_cn  # 保存辨識結果
+                            self.callback("jutsu_detected", jutsu_cn)
                             break
                 except:
                     pass
@@ -80,7 +78,7 @@ class PracticeScreen(BaseScreen):
                 temp_frame,
                 jutsu_jp,
                 (750, y_offset),
-                "C:/Windows/Fonts/msjh.ttc",  # 使用系統字體
+                "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
                 30,
                 (255, 255, 255),
             )
@@ -112,7 +110,7 @@ class PracticeScreen(BaseScreen):
             temp_frame,
             status_text,
             (mic_x - 30, mic_y + 220),
-            "C:/Windows/Fonts/msjh.ttc",  # 使用系統字體
+            "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
             30,
             (255, 255, 255),
         )
@@ -129,7 +127,7 @@ class PracticeScreen(BaseScreen):
             temp_frame,
             "返回",
             (back_x + 70, back_y + 10),
-            "C:/Windows/Fonts/msjh.ttc",  # 使用系統字體
+            "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
             30,
             (255, 255, 255),
         )
