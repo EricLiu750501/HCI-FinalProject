@@ -1,6 +1,7 @@
 # main.py
 import cv2
 import numpy as np
+import mediapipe as mp
 import pygame
 from screens.home_screen import HomeScreen
 # from screens.gesture_screen import GestureScreen
@@ -67,6 +68,9 @@ class GameManager:
             pygame.mixer.Sound.play(self.click_sound)
 
     def run(self):
+        
+    
+
         while self.running:
             # Create fresh frame from background
             frame = self.background.copy()
