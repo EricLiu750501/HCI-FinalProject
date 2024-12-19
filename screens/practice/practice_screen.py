@@ -226,7 +226,7 @@ class PracticeScreen(BaseScreen):
 
                         # 開始新的語音識別線程
                         self.is_listening = True
-                        self.listen_thread = Thread(target=self._listen_for_jutsu)
+                        self.listen_thread = Thread(target=self.__listen_for_jutsu)
                         self.listen_thread.daemon = True
                         self.listen_thread.start()
                     else:
