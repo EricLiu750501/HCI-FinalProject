@@ -23,7 +23,7 @@ gesture_hand_points = {
 def write_json():
     gesture_hand_points['hand_num'] = int(len(gesture_hand_points['left_d']) != 0) + int(len(gesture_hand_points['right_d']) != 0)
     # 定義資料夾
-    directory = '../setting/custom_gestures'
+    directory = 'setting/custom_gestures'
 
 
     # 確保資料夾存在

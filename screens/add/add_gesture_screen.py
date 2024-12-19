@@ -35,8 +35,8 @@ class AddGestureScreen(BaseScreen):
             )
         self.hands = self.mp_hands.Hands(
             max_num_hands=2,                # 最多偵測2隻手
-            min_detection_confidence=0.5,   # 偵測閾值
-            min_tracking_confidence=0.5     # 追蹤閾值
+            min_detection_confidence=0.7,   # 偵測閾值
+            min_tracking_confidence=0.7     # 追蹤閾值
         )
 
 
@@ -82,7 +82,7 @@ class AddGestureScreen(BaseScreen):
         frame[:] = (50, 50, 50)  # Fill frame with gray
 
         # 繪製返回按鈕
-        back_x, back_y = 50, WINDOW_SIZE[1] - 100
+        back_x, back_y = 950, WINDOW_SIZE[1] - 100
         cv2.rectangle(
             frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
         )
@@ -97,7 +97,7 @@ class AddGestureScreen(BaseScreen):
         self.button_areas.append((back_x, back_y, back_x + 200, back_y + 50))
 
         # Vertical separator line
-        cv2.line(frame, (700, 0), (700, WINDOW_SIZE[1]), (200, 200, 200), 2)
+        cv2.line(frame, (900, 0), (900, WINDOW_SIZE[1]), (200, 200, 200), 2)
 
         image = self.__face_tracking()
 
@@ -106,8 +106,8 @@ class AddGestureScreen(BaseScreen):
 
 
 
-        image = cv2.resize(image, (640, 480))
-        frame[50:530, 50:690] = image
+        image = cv2.resize(image, (800, 600))
+        frame[50:650, 50:850] = image
         return frame
     
 
@@ -189,7 +189,7 @@ class AddGestureScreen(BaseScreen):
                         cv2.putText(frame, "No Nod Detected", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                 
-                if self.nod_success >= self.frame_count * 0.7: # 點頭持續 0.7秒表示確定
+                if self.nod_success >= self.frame_count * 0.6: # 點頭持續 0.6秒表示確定
                     self.__record_gesture(hands_results)
                     cv2.putText(frame, "CONFIRM!!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2) 
             
@@ -204,7 +204,7 @@ class AddGestureScreen(BaseScreen):
 
 
     def __record_gesture(self, hands_results):
-
+        print("Recoding ...")
         gesture_hand_points = {
                 'gid' : 0,
                 'g_name' : 'Test',
@@ -234,22 +234,24 @@ class AddGestureScreen(BaseScreen):
         
 
   
-            # 定義資料夾
-            directory = '../setting/custom_gestures'
+        # 定義資料夾
+        directory = 'setting/custom_gestures'
 
-            # 確保資料夾存在
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+        # 確保資料夾存在
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-            # 找出資料夾中已存在的 .json 檔案數量
-            json_files = [f for f in os.listdir(directory) if f.endswith('.json')]
-            next_file_number = len(json_files) + 1  # 計算下個檔案編號
+        # 找出資料夾中已存在的 .json 檔案數量
+        json_files = [f for f in os.listdir(directory) if f.endswith('.json')]
+        next_file_number = len(json_files) + 1  # 計算下個檔案編號
 
-            # 定義新檔案名稱, set gid
-            file_name = f'gesture_hand_points{next_file_number}.json'
-            file_path = os.path.join(directory, file_name)
-            gesture_hand_points['gid'] = next_file_number 
+        # 定義新檔案名稱, set gid
+        file_name = f'gesture_hand_points{next_file_number}.json'
+        file_path = os.path.join(directory, file_name)
+        gesture_hand_points['gid'] = next_file_number 
 
-            # 寫入 JSON 檔案
-            with open(file_path, 'w', encoding='utf-8') as file:
-                json.dump(gesture_hand_points, file, ensure_ascii=False, indent=4)
+        # 寫入 JSON 檔案
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(gesture_hand_points, file, ensure_ascii=False, indent=4)
+
+        print("Recoding Done!")
