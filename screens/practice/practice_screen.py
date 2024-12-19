@@ -28,7 +28,7 @@ class PracticeScreen(BaseScreen):
 
             # 載入忍術列表
             self.jutsu_list = []
-            with open("setting/jutsu.csv", encoding="utf8") as f:
+            with open("setting/jutsu.csv", encoding="utf-8-sig") as f:
                 reader = csv.reader(f)
                 for i, row in enumerate(reader):
                     chinese_name = row[0].strip()  # 中文名稱
@@ -110,8 +110,8 @@ class PracticeScreen(BaseScreen):
                         # 停止錄音並跳轉到 show_screen
                         self.is_recording = False
                         self.is_listening = False
-                        self.callback("show_screen", jutsu_index)  # 修改這裡
-                        self.detection_status = True
+                        self.callback("show_screen", jutsu_index)
+                        # self.detection_status = True # (偵錯用，會直接跳到另一個螢幕不會顯示)
                         break
 
                 # 如果沒有偵測到忍術，仍然顯示使用者說的話
@@ -161,16 +161,16 @@ class PracticeScreen(BaseScreen):
         CvDrawText.puttext(
             temp_frame,
             status_text,
-            (mic_x - 30, mic_y + 220),
-            "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
+            (mic_x, mic_y + 220),
+            "assets/fonts/NotoSansTC-Bold.ttf",
             30,
-            (255, 255, 255),
+            (0, 0, 0),
         )
 
         # 如果偵測到忍術或說話內容，顯示結果
         if self.detection_timer > 0:
             if self.detection_status:
-                # 成功偵測到忍術
+                # 成功偵測到忍術(偵錯用，會直接跳到另一個螢幕不會顯示)
                 detection_text = f"已偵測到: {self.detected_jutsu_name}"
                 text_color = (0, 255, 0)  # 綠色文字
             else:
@@ -181,7 +181,7 @@ class PracticeScreen(BaseScreen):
             CvDrawText.puttext(
                 temp_frame,
                 detection_text,
-                (50, 50),
+                (50, 600),
                 "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
                 40,
                 text_color,
@@ -192,7 +192,7 @@ class PracticeScreen(BaseScreen):
         self.button_areas = [(mic_x, mic_y, mic_x + 200, mic_y + 200)]
 
         # 繪製返回按鈕 (移動到左上角)
-        back_x, back_y = 50, 50  # 修改這裡
+        back_x, back_y = 50, 50
         cv2.rectangle(
             temp_frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
         )
