@@ -214,7 +214,7 @@ class PracticeScreen(BaseScreen):
 
     def handle_click(self, x, y):
         for i, (x1, y1, x2, y2) in enumerate(self.button_areas):
-            if x1 <= x <= x2 and y1 <= y2:
+            if x1 <= x <= x2 and y1 <= y <= y2:
                 if i == 0:  # 麥克風按鈕
                     self.is_recording = not self.is_recording
                     if self.is_recording:
