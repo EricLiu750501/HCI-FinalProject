@@ -3,11 +3,12 @@ import cv2
 import numpy as np
 import copy
 from screens.base_screen import BaseScreen
-from utils.constants import WINDOW_SIZE
+from utils.constants import WINDOW_SIZE, FONT
 from model.yolox.yolox_onnx import YoloxONNX
 import csv
 import random
-import speech_recognition as sr
+
+# import speech_recognition as sr
 from threading import Thread
 from utils.CvDrawText import CvDrawText
 import json
@@ -53,8 +54,8 @@ class PracticeScreen(BaseScreen):
             print(f"初始化錯誤: {e}")
 
         # 語音識別初始化
-        self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        # self.recognizer = sr.Recognizer()
+        # self.microphone = sr.Microphone()
 
         # 新增：麥克風狀態
         self.is_recording = False
@@ -200,7 +201,7 @@ class PracticeScreen(BaseScreen):
             temp_frame,
             "返回",
             (back_x + 70, back_y + 10),
-            "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
+            FONT,
             30,
             (255, 255, 255),
         )

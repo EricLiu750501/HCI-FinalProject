@@ -10,7 +10,7 @@ class HomeScreen(BaseScreen):
     def __init__(self, callback):
         super().__init__(callback)
         self.selected_index = 0
-        self.font_path = "C:/Windows/Fonts/msjh.ttc"
+        self.font_path = FONT
         # 中文按鈕標題
         self.button_titles = ["新增手勢", "檢查手勢", "編輯", "練習"]
         

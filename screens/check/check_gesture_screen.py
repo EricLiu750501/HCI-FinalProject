@@ -1,13 +1,13 @@
 import cv2
 from screens.base_screen import BaseScreen
-from utils.constants import WINDOW_SIZE
+from utils.constants import WINDOW_SIZE, FONT
 from utils.CvDrawText import CvDrawText
 
 
 class CheckGestureScreen(BaseScreen):
     def __init__(self, callback):
         super().__init__(callback)
-        self.font_path = "assets/fonts/NotoSansTC-VariableFont_wght.ttf"
+        self.font_path = FONT
 
     def draw(self, frame):
         self.button_areas = []

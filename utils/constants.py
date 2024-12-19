@@ -13,3 +13,5 @@ DEV_ICONS = [
     "assets/icons/icon_check.png",
 ]
 NUM_DEV_BUTTONS = len(DEV_BUTTONS)
+
+FONT = "assets/fonts/NotoSansTC-VariableFont_wght.ttf"
