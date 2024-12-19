@@ -4,6 +4,8 @@ import numpy as np
 from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE, FONT
 from utils.CvDrawText import CvDrawText
+import os
+import json
 
 
 class AddGestureScreen(BaseScreen):
@@ -53,15 +55,6 @@ class AddGestureScreen(BaseScreen):
         self.brow_y_positions = [0] * self.frame_count
         self.nod_frequency_range = (2, 8)  # 點頭頻率範圍（以 Hz 為單位，假設每秒 30 幀）
         self.nod_success = 0 # 偵測成功正在點頭的 frame 數量
-
-
-        self.gesture_hand_points = {
-            'gid' : 0,
-            'g_name' : 'Test',
-            'hand_num' : 0,
-            'left_d' : [],
-            'right_d' : []
-        }
 
         self.cap = cv2.VideoCapture(0)  # Open default camera
         if not self.cap.isOpened():
@@ -197,19 +190,7 @@ class AddGestureScreen(BaseScreen):
 
                 
                 if self.nod_success >= self.frame_count * 0.7: # 點頭持續 0.7秒表示確定
-                    if hands_results.multi_hand_landmarks:
-                        for hand_landmarks, handedness in zip(hands_results.multi_hand_landmarks, hands_results.multi_handedness):                            
-                            # 獲得手部的關鍵點坐標
-                            landmarks = hand_landmarks.landmark
-                            hand_type = handedness.classification[0].label  # 判斷是左手還是右手
-                            
-                            # 顯示手部是哪隻手
-                            if self.debug_mode:
-                                cv2.putText(frame, f'Hand: {hand_type}', (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                            
-                            # 顯示每個關鍵點的座標
-                            for idx, landmark in enumerate(landmarks):
-                                print(f'{hand_type}Point {idx}: ({landmark.x}, {landmark.y}, {landmark.z})')
+                    self.__record_gesture(hands_results)
                     cv2.putText(frame, "CONFIRM!!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2) 
             
             
@@ -222,33 +203,53 @@ class AddGestureScreen(BaseScreen):
 
 
 
+    def __record_gesture(self, hands_results):
 
+        gesture_hand_points = {
+                'gid' : 0,
+                'g_name' : 'Test',
+                'hand_num' : 0,
+                'left_d' : [],
+                'right_d' : []
+            }
 
+        if hands_results.multi_hand_landmarks:
+            for hand_landmarks, handedness in zip(hands_results.multi_hand_landmarks, hands_results.multi_handedness):                            
+                # 獲得手部的關鍵點坐標
+                landmarks = hand_landmarks.landmark
+                hand_type = handedness.classification[0].label  # 判斷是左手還是右手
+                
+                array = [ [0.0,0.0,0.0] for i in range(20)]
+                for i in range(1, len(landmarks)):
+                        array[i-1][0] = landmarks[i-1].x - landmarks[0].x
+                        array[i-1][1] = landmarks[i-1].y - landmarks[0].y
+                        array[i-1][2] = landmarks[i-1].z - landmarks[0].z
+                
+                if hand_type == "Left" :
+                    gesture_hand_points['left_d'] = array
+                    gesture_hand_points["hand_num"] += 1
+                elif hand_type == "Right":
+                    gesture_hand_points['right_d'] = array
+                    gesture_hand_points["hand_num"] += 1
+        
 
-        # self.button_areas = []
-        # # 保存原始圖像的副本
-        # temp_frame = frame.copy()
-        # temp_frame[:] = (255, 255, 255)  # 白色背景
-        # # 添加標題
-        # CvDrawText.puttext(
-        #     temp_frame, "新增手勢", (100, 100), self.font_path, 48, color=(0, 0, 0)
-        # )
+  
+            # 定義資料夾
+            directory = '../setting/custom_gestures'
 
-        # # 繪製返回按鈕
-        # back_x, back_y = 50, WINDOW_SIZE[1] - 100
-        # cv2.rectangle(
-        #     temp_frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
-        # )
-        # CvDrawText.puttext(
-        #     temp_frame,
-        #     "返回",
-        #     (back_x + 70, back_y + 10),
-        #     self.font_path,
-        #     30,
-        #     (255, 255, 255),
-        # )
-        # self.button_areas.append((back_x, back_y, back_x + 200, back_y + 50))
+            # 確保資料夾存在
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
-        # # 將處理後的圖像複製回原始 frame
-        # frame[:] = temp_frame
-        # return frame
+            # 找出資料夾中已存在的 .json 檔案數量
+            json_files = [f for f in os.listdir(directory) if f.endswith('.json')]
+            next_file_number = len(json_files) + 1  # 計算下個檔案編號
+
+            # 定義新檔案名稱, set gid
+            file_name = f'gesture_hand_points{next_file_number}.json'
+            file_path = os.path.join(directory, file_name)
+            gesture_hand_points['gid'] = next_file_number 
+
+            # 寫入 JSON 檔案
+            with open(file_path, 'w', encoding='utf-8') as file:
+                json.dump(gesture_hand_points, file, ensure_ascii=False, indent=4)
