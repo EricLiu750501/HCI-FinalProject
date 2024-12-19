@@ -9,6 +9,8 @@ import copy
 import csv
 from utils.constants import WINDOW_SIZE
 from model.yolox.yolox_onnx import YoloxONNX
+from utils.constants import WINDOW_SIZE, FONT
+from utils.CvDrawText import CvDrawText
 
 
 class CheckGestureScreen(BaseScreen):
@@ -18,7 +20,9 @@ class CheckGestureScreen(BaseScreen):
         # init some private varibles here
         self.DETECTION_CONFIDENCE = 0.6  # for naruto gestures
         self.DETECTION_MIN_D = 0.05      # for added gestures
-        self.font_path = "C:/Windows/Fonts/msjh.ttc"
+        self.font_path = FONT
+
+    def draw(self, frame):
         self.button_areas = []
         
         # Camera setup
