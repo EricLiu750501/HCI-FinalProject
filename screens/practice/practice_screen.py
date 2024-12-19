@@ -10,6 +10,7 @@ import random
 import speech_recognition as sr
 from threading import Thread
 from utils.CvDrawText import CvDrawText
+import json
 
 
 class PracticeScreen(BaseScreen):
@@ -17,12 +18,28 @@ class PracticeScreen(BaseScreen):
         super().__init__(callback)
 
         try:
+            # 載入背景圖片
+            self.background = cv2.imread(
+                "assets/images/practice_background.png", cv2.IMREAD_COLOR
+            )
+            if self.background is None:
+                raise FileNotFoundError("無法載入背景圖片")
+            self.background = cv2.resize(self.background, WINDOW_SIZE)
+
             # 載入忍術列表
             self.jutsu_list = []
             with open("setting/jutsu.csv", encoding="utf8") as f:
                 reader = csv.reader(f)
                 for i, row in enumerate(reader):
-                    self.jutsu_list.append((row[0], row[1], i))  # 新增索引作為編號
+                    chinese_name = row[0].strip()  # 中文名稱
+                    english_name = row[1].strip().lower()  # 英文名稱（轉小寫方便匹配）
+                    self.jutsu_list.append(
+                        (chinese_name, english_name, i)
+                    )  # 中文、英文、索引
+
+            # 載入容忍詞表
+            with open("setting/tolerance_terms.json", encoding="utf8") as f:
+                self.tolerance_terms = json.load(f)
 
             # 載入麥克風圖標
             self.mic_icon = cv2.imread(
@@ -56,48 +73,68 @@ class PracticeScreen(BaseScreen):
         while self.is_listening:
             with self.microphone as source:
                 self.recognizer.adjust_for_ambient_noise(source)
-                try:
-                    audio = self.recognizer.listen(source, timeout=1)
-                    text = self.recognizer.recognize_google(audio, language="zh-TW")
 
-                    # 保存使用者說的話
-                    self.user_spoken_text = text
-                    self.detection_status = False
+                audio = self.recognizer.listen(source, timeout=1)
+                text = self.recognizer.recognize_google(audio, language="zh-TW")
 
-                    for jutsu_cn, _, jutsu_index in self.jutsu_list:
-                        if text in jutsu_cn:
-                            self.detected_jutsu_name = jutsu_cn
-                            self.callback("jutsu_detected", jutsu_index)  # 傳遞忍術編號
-                            self.detection_status = True
-                            break
+                # 保存使用者說的話
+                self.user_spoken_text = text
+                self.detection_status = False
+                normalized_text = text.replace(" ", "").lower()  # 去除空格並轉小寫
+                print(f"使用者輸入: {text}")
 
-                    # 如果沒有偵測到忍術，仍然顯示使用者說的話
-                    self.detection_timer = self.DETECTION_DISPLAY_TIME
-                except:
-                    pass
+                # 驗證是否匹配忍術（包含容忍詞表）
+                for jutsu_cn, jutsu_en, jutsu_index in self.jutsu_list:
+                    # 忍術名稱正規化（移除空格，轉小寫）
+                    normalized_jutsu_cn = jutsu_cn.replace(" ", "").lower()
+                    normalized_jutsu_en = jutsu_en.lower()
+
+                    # 取得容忍詞表的可能詞彙
+                    possible_terms = self.tolerance_terms.get(
+                        jutsu_cn, [jutsu_cn]
+                    )  # 預設為 [jutsu_cn]
+                    normalized_possible_terms = [
+                        term.replace(" ", "").lower() for term in possible_terms
+                    ]
+
+                    # 匹配條件
+                    if (
+                        normalized_jutsu_cn in normalized_text  # 中文忍術名稱
+                        or normalized_jutsu_en in normalized_text  # 英文忍術名稱
+                        or any(
+                            term in normalized_text
+                            for term in normalized_possible_terms
+                        )  # 容忍詞表
+                    ):
+                        self.detected_jutsu_name = jutsu_cn
+                        # 停止錄音並跳轉到 show_screen
+                        self.is_recording = False
+                        self.is_listening = False
+                        self.callback("show_screen", jutsu_index)  # 修改這裡
+                        self.detection_status = True
+                        break
+
+                # 如果沒有偵測到忍術，仍然顯示使用者說的話
+                self.detection_timer = self.DETECTION_DISPLAY_TIME
 
     def draw(self, frame):
         self.button_areas = []
 
-        # 保存原始圖像的副本
-        temp_frame = frame.copy()
-        temp_frame[:] = (50, 50, 50)  # 灰色背景
-
-        # 垂直分隔線
-        cv2.line(temp_frame, (700, 0), (700, WINDOW_SIZE[1]), (200, 200, 200), 2)
+        # 使用背景圖片
+        temp_frame = self.background.copy()
 
         # 右側顯示忍術列表
         y_offset = 100
-        for jutsu_jp, _, _ in self.jutsu_list:
+        for jutsu_ch, jutsu_en, i in self.jutsu_list:
             CvDrawText.puttext(
                 temp_frame,
-                jutsu_jp,
-                (750, y_offset),
+                f"{jutsu_ch} ({jutsu_en})",
+                (800, y_offset),
                 "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
-                30,
-                (255, 255, 255),
+                28,
+                (0, 0, 0),
             )
-            y_offset += 30
+            y_offset += 40
 
         # 繪製麥克風圖標（在畫面左側中間）
         mic_x = 250
@@ -154,8 +191,8 @@ class PracticeScreen(BaseScreen):
         # 保存麥克風按鈕區域
         self.button_areas = [(mic_x, mic_y, mic_x + 200, mic_y + 200)]
 
-        # 繪製返回按鈕
-        back_x, back_y = 50, WINDOW_SIZE[1] - 100
+        # 繪製返回按鈕 (移動到左上角)
+        back_x, back_y = 50, 50  # 修改這裡
         cv2.rectangle(
             temp_frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
         )
@@ -180,7 +217,7 @@ class PracticeScreen(BaseScreen):
                 if i == 0:  # 麥克風按鈕
                     self.is_recording = not self.is_recording
                     if self.is_recording:
-                        # 重置之前的識別結果
+                        # 重置前的識別結果
                         self.detected_jutsu_name = ""
                         self.user_spoken_text = ""
                         self.detection_timer = 0

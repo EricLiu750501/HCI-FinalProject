@@ -10,6 +10,7 @@ from screens.gesture_model_screen import GestureScreen
 from screens.add.add_gesture_screen import AddGestureScreen
 from screens.check.check_gesture_screen import CheckGestureScreen
 from screens.edit.edit_screen import EditScreen
+from screens.show_screen import ShowScreen
 from utils.constants import WINDOW_SIZE
 
 
@@ -35,6 +36,7 @@ class GameManager:
 
         self.gesture_screen_model = GestureScreen(self._handle_button_click)
         self.practice_screen = PracticeScreen(self._handle_button_click)
+        self.show_screen = ShowScreen(self._handle_button_click)
         self.current_screen = self.home_screen
 
         # State
@@ -73,6 +75,10 @@ class GameManager:
             # 更新 detected_jutsu 為忍術編號
             self.detected_jutsu = data
             print(f"偵測到忍術編號: {data}")
+        elif action == "show_screen":
+            self.show_screen.set_jutsu_index(data)
+            self.current_screen = self.show_screen
+            pygame.mixer.Sound.play(self.click_sound)
 
     def run(self):
         while self.running:
