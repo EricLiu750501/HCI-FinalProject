@@ -29,6 +29,15 @@ class CheckGestureScreen(BaseScreen):
         self.font_path = FONT
         self.button_areas = []
 
+        # Load labels
+        with open("setting/labels.csv", encoding="utf8") as f:
+            labels = csv.reader(f)
+            self.labels = [row for row in labels]
+        
+        # load gestures lm's distances
+        with open("setting/created_gestures.json", encoding="utf8") as created_gestures_d:
+            self.created_gestures_d = json.load(created_gestures_d)
+            
         # Camera setup
         self.cap = cv2.VideoCapture(0)  # Open default camera
         if not self.cap.isOpened():
@@ -60,10 +69,6 @@ class CheckGestureScreen(BaseScreen):
             nms_score_th=nms_score_th,
         )
 
-        # Load labels
-        with open("setting/labels.csv", encoding="utf8") as f:
-            labels = csv.reader(f)
-            self.labels = [row for row in labels]
 
     def draw(self, frame):
         frame[:] = (150, 150, 150)  # white BG
@@ -130,11 +135,73 @@ class CheckGestureScreen(BaseScreen):
                 rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = self.hands.process(rgb_image)
 
-                if results.multi_hand_landmarks:
-                    for hand_landmarks in results.multi_hand_landmarks:
+                if results.multi_hand_landmarks and results.multi_handedness:
+                    right_hand_raw = []
+                    left_hand_raw = []
+                    
+                    for hand_landmarks, handedness in zip(
+                        results.multi_hand_landmarks, results.multi_handedness
+                    ):
+                        # for each hand
+                        
+                        # draw lms
                         self.drawing_utils.draw_landmarks(
                             image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS
                         )
+                        
+                        # save raw points for each hand
+                        landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                        hand_label = handedness.classification[0].label  # "Left" or "Right"
+                        
+                        if hand_label == "Right":
+                            right_hand_raw = landmarks
+                        elif hand_label == "Left":
+                            left_hand_raw = landmarks
+                            
+                    [right_d, left_d] = self.__get_current_gesture_d(right_hand_raw, left_hand_raw)
+                    
+                    # for created_gesture_d in self.created_gestures_d:
+                    #     # for each created gesture
+                    #     right_mean_d = 0
+                    #     left_mean_d = 0
+                        
+                    #     if created_gesture_d["hand_num"] == 2:
+                    #         # Both hands comparation
+                    #         # right hand part:
+                    #         for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
+                    #             # compare
+                    #             right_mean_d += abs(sample_d - cur_d)
+                                
+                    #         # left hand part:
+                    #         for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
+                    #             # compare
+                    #             left_mean_d += abs(sample_d - cur_d)
+                                
+                    #         # take mean
+                    #         right_mean_d / len(right_d)
+                    #         left_mean_d / len(left_d)
+                            
+                    #         print(f"{right_d}, {left_d}")
+                    #     elif created_gesture_d["hand_num"] == 1 and created_gesture_d["left_d"] == []:
+                    #         # right hand only:
+                    #         for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
+                    #             # compare
+                    #             right_mean_d += abs(sample_d - cur_d)
+                                
+                    #         # take mean
+                    #         right_mean_d / len(right_d)
+                            
+                    #         print(f"{right_d}")
+                    #     else:                                
+                    #         # left hand only:
+                    #         for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
+                    #             # compare
+                    #             left_mean_d += abs(sample_d - cur_d)
+                                
+                    #         # take mean
+                    #         left_mean_d / len(left_d)
+                            
+                    #         print(f"{left_d}")
 
             # resize the cam frame to fit the frame
             frame[70 : 70 + 480, 300 : 300 + 640] = cv2.resize(image, (640, 480))
@@ -178,3 +245,28 @@ class CheckGestureScreen(BaseScreen):
         self.button_areas.append(
             (back_x, back_y, back_x + btn_width, back_y + btn_height)
         )
+
+    def __get_current_gesture_d(self, right_hand_raw, left_hand_raw):
+        # Goal is to get all lm's distance from (ID = 0)'s lm (the palm)
+        # from MediaPipe the lm for palm is the first point in our raw data
+        
+        # Right Hand:
+        distance_right = []
+        if right_hand_raw != []:
+            base_point_right = np.array(right_hand_raw[0])
+            
+            for i, point in enumerate(right_hand_raw):
+                if i != 0:
+                    distance_right.append(np.linalg.norm(np.array(point) - base_point_right))
+                
+        # Left Hand:
+        distance_left = []
+        if left_hand_raw != []:
+            base_point_left = np.array(left_hand_raw[0])
+            
+            for i, point in enumerate(left_hand_raw):
+                if i != 0:
+                    distance_left.append(np.linalg.norm(np.array(point) - base_point_left))
+        
+        
+        return [distance_right, distance_left]
