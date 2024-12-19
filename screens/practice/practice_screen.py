@@ -69,7 +69,7 @@ class PracticeScreen(BaseScreen):
         self.DETECTION_DISPLAY_TIME = 100  # 顯示時間（幀數）
         self.detection_status = False  # 是否成功偵測到忍術
 
-    def _listen_for_jutsu(self):
+    def __listen_for_jutsu(self):
         """持續監聽語音輸入"""
         while self.is_listening:
             with self.microphone as source:
