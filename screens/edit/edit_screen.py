@@ -113,6 +113,19 @@ class EditScreen(BaseScreen):
             tk.messagebox.showerror("錯誤", "請確保已輸入名稱並添加手勢序列")
             return
 
+        # 載入現有的術語
+        user_sequences = self._load_existing_sequences()
+        default_sequence = self._load_default_sequences()
+        total_sequence = user_sequences + default_sequence
+        print(total_sequence)
+        # 檢查是否有重複的名稱
+        for seq in total_sequence:
+            if seq["name_zh"] == self.jutsu_name_zh:
+                tk.messagebox.showerror("錯誤", "中文名稱已存在，請選擇其他名稱")
+                return
+            if seq["name_en"] == self.jutsu_name_en:
+                tk.messagebox.showerror("錯誤", "英文名稱已存在，請選擇其他名稱")
+                return
         sequence_data = {
             "id": 6 + self.current_size + 1,
             "name_zh": self.jutsu_name_zh,
@@ -121,11 +134,10 @@ class EditScreen(BaseScreen):
         }
         self.current_size += 1
 
-        sequences = self._load_existing_sequences()
-        sequences.append(sequence_data)
+        user_sequences.append(sequence_data)
 
         with open("setting/user_jutsu.json", "w", encoding="utf-8") as f:
-            json.dump(sequences, f, ensure_ascii=False, indent=2)
+            json.dump(user_sequences, f, ensure_ascii=False, indent=2)
 
         # 儲存成功提示
         tk.messagebox.showinfo("成功", "序列已成功儲存")
@@ -138,6 +150,13 @@ class EditScreen(BaseScreen):
     def _load_existing_sequences(self):
         try:
             with open("setting/user_jutsu.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return []
+
+    def _load_default_sequences(self):
+        try:
+            with open("setting/default_jutsu.json", "r", encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return []
