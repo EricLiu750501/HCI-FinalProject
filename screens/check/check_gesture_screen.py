@@ -145,6 +145,7 @@ class CheckGestureScreen(BaseScreen):
                         # for each hand
                         
                         # draw lms
+                        # we will only draw hands if we detect the gesture after integrating
                         self.drawing_utils.draw_landmarks(
                             image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS
                         )
@@ -160,48 +161,9 @@ class CheckGestureScreen(BaseScreen):
                             
                     [right_d, left_d] = self.__get_current_gesture_d(right_hand_raw, left_hand_raw)
                     
-                    # for created_gesture_d in self.created_gestures_d:
-                    #     # for each created gesture
-                    #     right_mean_d = 0
-                    #     left_mean_d = 0
-                        
-                    #     if created_gesture_d["hand_num"] == 2:
-                    #         # Both hands comparation
-                    #         # right hand part:
-                    #         for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
-                    #             # compare
-                    #             right_mean_d += abs(sample_d - cur_d)
-                                
-                    #         # left hand part:
-                    #         for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
-                    #             # compare
-                    #             left_mean_d += abs(sample_d - cur_d)
-                                
-                    #         # take mean
-                    #         right_mean_d / len(right_d)
-                    #         left_mean_d / len(left_d)
-                            
-                    #         print(f"{right_d}, {left_d}")
-                    #     elif created_gesture_d["hand_num"] == 1 and created_gesture_d["left_d"] == []:
-                    #         # right hand only:
-                    #         for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
-                    #             # compare
-                    #             right_mean_d += abs(sample_d - cur_d)
-                                
-                    #         # take mean
-                    #         right_mean_d / len(right_d)
-                            
-                    #         print(f"{right_d}")
-                    #     else:                                
-                    #         # left hand only:
-                    #         for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
-                    #             # compare
-                    #             left_mean_d += abs(sample_d - cur_d)
-                                
-                    #         # take mean
-                    #         left_mean_d / len(left_d)
-                            
-                    #         print(f"{left_d}")
+                    # gesture_id = self.__check_current_gesture(right_d, left_d)
+                    # if gesture_id != None:
+                        # find the gesture
 
             # resize the cam frame to fit the frame
             frame[70 : 70 + 480, 300 : 300 + 640] = cv2.resize(image, (640, 480))
@@ -270,3 +232,63 @@ class CheckGestureScreen(BaseScreen):
         
         
         return [distance_right, distance_left]
+    
+    def __check_current_gesture(self, right_d, left_d):
+        for created_gesture_d in self.created_gestures_d:
+            # for each created gesture
+            right_mean_d = 0
+            left_mean_d = 0
+            
+            if created_gesture_d["hand_num"] == 2:
+                # Both hands comparation
+                # right hand part:
+                for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
+                    # compare
+                    right_mean_d += abs(sample_d - cur_d)
+                    
+                # left hand part:
+                for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
+                    # compare
+                    left_mean_d += abs(sample_d - cur_d)
+                    
+                # take mean
+                right_mean_d / len(right_d)
+                left_mean_d / len(left_d)
+                
+                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                    # congrats! we get the gesture
+                    # print(f"{right_d}, {left_d}")
+                    
+                    return created_gesture_d["g_id"]
+            elif created_gesture_d["hand_num"] == 1 and created_gesture_d["left_d"] == []:
+                # right hand only:
+                for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
+                    # compare
+                    right_mean_d += abs(sample_d - cur_d)
+                    
+                
+                # take mean
+                right_mean_d / len(right_d)
+                
+                if right_mean_d < self.DETECTION_MIN_D:
+                    # congrats! we get the gesture
+                    # print(f"{right_d}")
+                    
+                    return created_gesture_d["g_id"]
+            else:                                
+                # left hand only:
+                for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
+                    # compare
+                    left_mean_d += abs(sample_d - cur_d)
+                    
+                # take mean
+                left_mean_d / len(left_d)
+                
+                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                    # congrats! we get the gesture
+                    # print(f"{left_d}")
+                    
+                    return created_gesture_d["g_id"]
+                
+                
+        return None
