@@ -218,7 +218,8 @@ class AddGestureScreen(BaseScreen):
         print("Recoding ...")
         gesture_hand_points = {
                 'gid' : 0,
-                'g_name' : 'Unknow',
+                "g_name_zh": "無",
+                'g_name_en' : 'Unknow',
                 'hand_num' : 0,
                 'left_d' : [],
                 'right_d' : []
@@ -244,13 +245,14 @@ class AddGestureScreen(BaseScreen):
                     gesture_hand_points["hand_num"] += 1
         
         # 開啟 Tkinter 視窗，讓使用者輸入招式名稱
-        is_add, name = self.__tk_get_char()
+        is_add, name_zh, name_en = self.__tk_get_char()
 
         if not is_add:
             return 0
 
-        print("招式名稱:", name)
-        gesture_hand_points['g_name'] = name
+        print("招式名稱:", name_zh)
+        gesture_hand_points['g_name_zh'] = name_zh
+        gesture_hand_points['g_name_en'] = name_en
 
         # 定義資料夾
         directory = 'setting/custom_gestures'
@@ -277,30 +279,92 @@ class AddGestureScreen(BaseScreen):
     def __tk_get_char(self):
         top = tk.Toplevel()
         top.title("定義招式名稱")
+        
 
-        user_input = tk.StringVar()
+        user_input_zh = tk.StringVar()
+        user_input_en = tk.StringVar()
+        error_message_zh = tk.StringVar()
+        error_message_en = tk.StringVar()
 
-        entry = tk.Entry(top, textvariable=user_input, width=50)
-        entry.pack(pady=10)
+        # 定義驗證函數，只允許字母和空格
+        def validate_input_en(char):
+            
+            if char.encode( 'UTF-8' ).isalpha():
+                error_message_en.set("")  # 清除錯誤訊息
+                return True
+            else:
+                error_message_en.set("只允許輸入字母")
+                return False
 
+        def validate_input_zh(char):
+            if '\u4e00' <= char <= '\u9fa5' and len(char) == 1:
+                error_message_zh.set("")  # 清除錯誤訊息
+                return True
+            else:
+                error_message_zh.set("只允許輸入一字中文")
+                return False
+
+        # 將驗證函數包裝成 Tkinter 可以使用的格式
+        validate_command_zh = top.register(validate_input_zh)
+        validate_command_en = top.register(validate_input_en)
+
+        # 使用 Frame 來組織 Label 和 Entry
+        frame_zh = tk.Frame(top)
+        frame_zh.pack(pady=10)
+
+        label_zh = tk.Label(frame_zh, text="請輸入一個字中文：")
+        label_zh.pack(side=tk.LEFT)
+
+        error_label_zh = tk.Label(frame_zh, textvariable=error_message_zh, fg="red")
+        error_label_zh.pack(side=tk.RIGHT)
+
+        entry_zh = tk.Entry(frame_zh, textvariable=user_input_zh, width=50, validate="key", validatecommand=(validate_command_zh, '%S'))
+        entry_zh.pack(side=tk.LEFT)
+
+        # 英文輸入框
+        frame_en = tk.Frame(top)
+        frame_en.pack(pady=10)
+
+        label_en = tk.Label(frame_en, text="請輸入英文名稱：")
+        label_en.pack(side=tk.LEFT)
+
+        entry_en = tk.Entry(frame_en, textvariable=user_input_en, width=50, validate="key", validatecommand=(validate_command_en, '%S'))
+        entry_en.pack(side=tk.LEFT)
+
+        error_label_en = tk.Label(frame_en, textvariable=error_message_en, fg="red")
+        error_label_en.pack(side=tk.RIGHT)
+
+        is_add = False
         def on_submit():
+            nonlocal is_add
+            if not user_input_zh.get():
+                error_message_zh.set("輸入不得為空")
+                return
+            elif len(user_input_zh.get()) != 1:
+                error_message_zh.set("只允許輸入一字中文")
+                return
+            if not user_input_en.get():
+                error_message_en.set("輸入不得為空")
+                return
             is_add = True
             top.quit()  # 結束事件循環
 
         def on_cancel():
+            nonlocal is_add
             is_add = False
             top.quit()
         
-        is_add = False
+        
         submit_button = tk.Button(top, text="Submit", command=on_submit)
-        cancel_button = tk.Button(top, text="Cancel", command=on_submit)
+        cancel_button = tk.Button(top, text="Cancel Add Gesture", command=on_cancel)
         submit_button.pack(pady=10)
         cancel_button.pack(pady=20)
         top.mainloop()  # 進入事件循環
         top.withdraw()  # 隱藏視窗
 
-        result = user_input.get()
+        result_zh = user_input_zh.get()
+        result_en = user_input_en.get()
         top.destroy()  # 銷毀視窗
-
-        return (is_add, result)  # 返回是否新增和用戶輸入的招式名稱
+        print("User input:", is_add, result_zh, result_en)
+        return (is_add, result_zh, result_en)  # 返回是否新增和用戶輸入的招式名稱
   
