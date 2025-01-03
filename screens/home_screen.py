@@ -65,18 +65,24 @@ class HomeScreen(BaseScreen):
             )
             self.button_areas.append((x, y, x + button_width, y + button_height))
             
+        # Calculate starting x position for dev buttons
+        total_width = button_width * len(DEV_BUTTONS) + gap * (len(DEV_BUTTONS) - 1)
+        start_x = (WINDOW_SIZE[0] - total_width) // 2
+        y = 100
+        
         # Draw develope areas buttons
-        hover = (0 + NUM_BUTTONS == self.selected_index)
-        draw_button(
-            frame,
-            DEV_BUTTONS[len(DEV_BUTTONS) - 1],
-            DEV_ICONS[len(DEV_ICONS) - 1],
-            (100, 100),
-            (button_width, button_height),
-            selected=False,
-            hover=hover,
-        )
-        self.button_areas.append((100, 100, 100 + button_width, 100 + button_height))
+        for i, text in enumerate(DEV_BUTTONS):
+            x = start_x + i * (button_width + gap)
+            draw_button(
+                frame,
+                text,
+                ICONS[i],
+                (x, y),
+                (button_width, button_height),
+                selected=False,
+                hover=False,
+            )
+            self.button_areas.append((x, y, x + button_width, y + button_height))
 
         # Draw exit button
         exit_x = WINDOW_SIZE[0] - button_width - 10
@@ -111,4 +117,6 @@ class HomeScreen(BaseScreen):
                         self.callback("practice_screen")
                     elif i == 4:
                         self.callback("gesture_screen_model")
+                    elif i == 5:
+                        self.callback("input_box_screen_model")
                 break
