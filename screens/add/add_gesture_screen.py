@@ -6,11 +6,20 @@ from utils.constants import WINDOW_SIZE, FONT
 from utils.CvDrawText import CvDrawText
 import os
 import json
+import tkinter as tk
 
 
 class AddGestureScreen(BaseScreen):
     
     def __init__(self, callback):
+        # self.root = tk.Tk()
+        # self.root.withdraw()
+        # self.root.title("定義招式名稱")
+        # self.user_input = tk.StringVar()
+        # self.entry = tk.Entry(self.root, textvariable=self.user_input, width=50)
+        # self.entry.pack(pady=10)
+
+
         super().__init__(callback)
         self.font_path = FONT
         self.colors = {
@@ -191,6 +200,7 @@ class AddGestureScreen(BaseScreen):
                 
                 if self.nod_success >= self.frame_count * 0.6: # 點頭持續 0.6秒表示確定
                     self.__record_gesture(hands_results)
+                    self.nod_success = 0
                     cv2.putText(frame, "CONFIRM!!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2) 
             
             
@@ -207,7 +217,7 @@ class AddGestureScreen(BaseScreen):
         print("Recoding ...")
         gesture_hand_points = {
                 'gid' : 0,
-                'g_name' : 'Test',
+                'g_name' : 'Unknow',
                 'hand_num' : 0,
                 'left_d' : [],
                 'right_d' : []
@@ -232,8 +242,11 @@ class AddGestureScreen(BaseScreen):
                     gesture_hand_points['right_d'] = array
                     gesture_hand_points["hand_num"] += 1
         
+        # 開啟 Tkinter 視窗，讓使用者輸入招式名稱
+        name = self.__tk_get_char()
+        print("招式名稱:", name)
+        gesture_hand_points['g_name'] = name
 
-  
         # 定義資料夾
         directory = 'setting/custom_gestures'
 
@@ -255,3 +268,27 @@ class AddGestureScreen(BaseScreen):
             json.dump(gesture_hand_points, file, ensure_ascii=False, indent=4)
 
         print("Recoding Done!")
+
+    def __tk_get_char(self):
+        top = tk.Toplevel()
+        top.title("定義招式名稱")
+
+        user_input = tk.StringVar()
+
+        entry = tk.Entry(top, textvariable=user_input, width=50)
+        entry.pack(pady=10)
+
+        def on_submit():
+            top.quit()  # 結束事件循環
+
+        submit_button = tk.Button(top, text="Submit", command=on_submit)
+        submit_button.pack(pady=10)
+
+        top.mainloop()  # 進入事件循環
+        top.withdraw()  # 隱藏視窗
+
+        result = user_input.get()
+        top.destroy()  # 銷毀視窗
+
+        return result
+  

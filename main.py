@@ -16,9 +16,12 @@ from screens.input_box_screen import InputBoxScreen
 
 from utils.constants import WINDOW_SIZE
 
+import tkinter as tk
 
 class GameManager:
     def __init__(self):
+        self.root = tk.Tk() 
+        self.root.withdraw()
         pygame.mixer.init()
         self.click_sound = pygame.mixer.Sound("assets/sounds/click.wav")
 
