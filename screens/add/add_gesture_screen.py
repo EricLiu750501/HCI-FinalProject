@@ -200,7 +200,8 @@ class AddGestureScreen(BaseScreen):
                 
                 if self.nod_success >= self.frame_count * 0.6: # 點頭持續 0.6秒表示確定
                     self.__record_gesture(hands_results)
-                    self.nod_success = 0
+                    self.nod_success = 0 # reset
+                    self.brow_y_positions = [0] * self.frame_count # reset
                     cv2.putText(frame, "CONFIRM!!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2) 
             
             
@@ -243,7 +244,11 @@ class AddGestureScreen(BaseScreen):
                     gesture_hand_points["hand_num"] += 1
         
         # 開啟 Tkinter 視窗，讓使用者輸入招式名稱
-        name = self.__tk_get_char()
+        is_add, name = self.__tk_get_char()
+
+        if not is_add:
+            return 0
+
         print("招式名稱:", name)
         gesture_hand_points['g_name'] = name
 
@@ -279,16 +284,23 @@ class AddGestureScreen(BaseScreen):
         entry.pack(pady=10)
 
         def on_submit():
+            is_add = True
             top.quit()  # 結束事件循環
 
+        def on_cancel():
+            is_add = False
+            top.quit()
+        
+        is_add = False
         submit_button = tk.Button(top, text="Submit", command=on_submit)
+        cancel_button = tk.Button(top, text="Cancel", command=on_submit)
         submit_button.pack(pady=10)
-
+        cancel_button.pack(pady=20)
         top.mainloop()  # 進入事件循環
         top.withdraw()  # 隱藏視窗
 
         result = user_input.get()
         top.destroy()  # 銷毀視窗
 
-        return result
+        return (is_add, result)  # 返回是否新增和用戶輸入的招式名稱
   
