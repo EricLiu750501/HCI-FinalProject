@@ -1,0 +1,48 @@
+{
+    "_comment1": "real file is in setting/created_gestures.json",
+    "_comment2": "each right_d and left_d should contain 20 positive float numbers or a complete empty list",
+
+
+    "created_gestures_d": [
+        {
+            "g_id": 12,
+            "g_name_zh": "範例",
+            "g_name_en": "example",
+            "hand_num": 2,
+            "right_d": [
+                0.01,
+                0.02,
+                0.015
+            ],
+            "left_d": [
+                0.01,
+                0.02,
+                0.015
+            ]
+        },
+        {
+            "g_id": 13,
+            "g_name_zh": "範例 右手而已的",
+            "g_name": "example right",
+            "hand_num": 1,
+            "right_d": [
+                0.01,
+                0.02,
+                0.015
+            ],
+            "left_d": []
+        },
+        {
+            "g_id": 14,
+            "g_name_zh": "範例 左手而已的",
+            "g_name": "example left",
+            "hand_num": 2,
+            "right_d": [],
+            "left_d": [
+                0.01,
+                0.02,
+                0.015
+            ]
+        }
+    ]
+}
