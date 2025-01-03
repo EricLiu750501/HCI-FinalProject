@@ -8,9 +8,10 @@ ICONS = [
 ]
 NUM_BUTTONS = len(BUTTONS)
 
-DEV_BUTTONS = ["Gesture_Model"]
+DEV_BUTTONS = ["Gesture_Model", "Input_Box_Model"]
 DEV_ICONS = [
     "assets/icons/icon_check.png",
+    "assets/icons/icon_add.png",
 ]
 NUM_DEV_BUTTONS = len(DEV_BUTTONS)
 
