@@ -221,9 +221,9 @@ class AddGestureScreen(BaseScreen):
                 
                 array = [ [0.0,0.0,0.0] for i in range(20)]
                 for i in range(1, len(landmarks)):
-                        array[i-1][0] = landmarks[i-1].x - landmarks[0].x
-                        array[i-1][1] = landmarks[i-1].y - landmarks[0].y
-                        array[i-1][2] = landmarks[i-1].z - landmarks[0].z
+                        array[i-1][0] = landmarks[i].x - landmarks[0].x
+                        array[i-1][1] = landmarks[i].y - landmarks[0].y
+                        array[i-1][2] = landmarks[i].z - landmarks[0].z
                 
                 if hand_type == "Left" :
                     gesture_hand_points['left_d'] = array
