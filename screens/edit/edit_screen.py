@@ -3,7 +3,7 @@ import json
 import tkinter as tk
 from tkinter import simpledialog
 from screens.base_screen import BaseScreen
-from utils.constants import WINDOW_SIZE, FONT
+from utils.constants import WINDOW_SIZE, FONT_BOLD
 from utils.CvDrawText import CvDrawText
 import csv
 
@@ -11,9 +11,10 @@ import csv
 class EditScreen(BaseScreen):
     def __init__(self, callback):
         super().__init__(callback)
-        self.font_path = FONT
+        self.font_path = FONT_BOLD
         self.current_sequence = []
         self.gestures = self._load_gestures()
+        self.current_size = len(self._load_existing_sequences())
         self.button_areas = []
         self.gesture_buttons = []
         self.function_buttons = []
@@ -21,6 +22,18 @@ class EditScreen(BaseScreen):
         self.jutsu_name_en = ""
         self.is_editing_zh = False
         self.is_editing_en = False
+
+        self.COLORS = {
+            "gesture_btn": (102, 140, 255),  # 溫和的橙色
+            "func_btn": {
+                "back": (51, 153, 255),  # 溫和橙色
+                "clear": (80, 80, 245),  # 溫和紅色
+                "backspace": (71, 99, 255),  # 溫和橙色
+                "save": (102, 255, 80),  # 溫和綠色
+            },
+            "text_input": (240, 240, 240),  # 淺灰色
+        }
+
         # 初始化 Tkinter root window
         self.root = tk.Tk()
         self.root.withdraw()  # 隱藏主窗口
@@ -29,9 +42,11 @@ class EditScreen(BaseScreen):
         gestures = []
         with open("setting/labels.csv", "r", encoding="utf-8") as file:
             reader = csv.reader(file)
+            i = 1
             for row in reader:
                 if row[1] != "無":
-                    gestures.append({"en": row[0], "zh": row[1]})
+                    gestures.append({"en": row[0], "zh": row[1], "id": i})
+                    i += 1
         return gestures
 
     def _get_user_input(self, prompt):
@@ -61,6 +76,9 @@ class EditScreen(BaseScreen):
         # 檢查手勢按鈕
         for bx, by, bx2, by2, gesture in self.gesture_buttons:
             if bx <= x <= bx2 and by <= y <= by2:
+                if len(self.current_sequence) >= 10:
+                    tk.messagebox.showwarning("警告", "最多只能輸入10個手勢！")
+                    return
                 self.current_sequence.append(gesture)
                 return
 
@@ -68,13 +86,22 @@ class EditScreen(BaseScreen):
         for bx, by, bx2, by2, action in self.function_buttons:
             if bx <= x <= bx2 and by <= y <= by2:
                 if action == "back":
+                    self._clear_content()  # 清空內容
                     self.callback("back")
                 elif action == "delete":
                     if self.current_sequence:
                         self.current_sequence.pop()
                 elif action == "save":
                     self._save_sequence()
+                elif action == "clear":
+                    self._clear_content()  # 呼叫清空功能
                 break
+
+    def _clear_content(self):
+        """清空當前編輯的內容"""
+        self.current_sequence = []
+        self.jutsu_name_zh = ""
+        self.jutsu_name_en = ""
 
     def _save_sequence(self):
         if (
@@ -87,10 +114,12 @@ class EditScreen(BaseScreen):
             return
 
         sequence_data = {
+            "id": 6 + self.current_size + 1,
             "name_zh": self.jutsu_name_zh,
             "name_en": self.jutsu_name_en,
-            "sequence": [g["en"] for g in self.current_sequence],
+            "sequence": [g["id"] for g in self.current_sequence],
         }
+        self.current_size += 1
 
         sequences = self._load_existing_sequences()
         sequences.append(sequence_data)
@@ -114,29 +143,39 @@ class EditScreen(BaseScreen):
             return []
 
     def draw(self, frame):
-        # 原有的 draw 方法保持不變
         self.button_areas = []
         self.gesture_buttons = []
         self.function_buttons = []
 
-        # 白色背景
-        frame[:] = (255, 255, 255)
+        # 載入背景圖片
+        background_image = cv2.imread("assets/images/edit_background.png")
+        if background_image is not None:
+            # 確保背景圖片大小符合視窗大小
+            background_image = cv2.resize(
+                background_image, (frame.shape[1], frame.shape[0])
+            )
+            frame[:] = background_image
+        else:
+            # 如果背景圖片無法載入，使用白色背景
+            frame[:] = (255, 255, 255)
 
-        # 1. 顯示名稱輸入區域（最上方）
-        # 中文名稱輸入框
+        # 名稱輸入區域
         zh_x, zh_y = 50, 30
-        cv2.rectangle(frame, (zh_x, zh_y), (zh_x + 300, zh_y + 40), (200, 200, 200), -1)
-        cv2.rectangle(frame, (zh_x, zh_y), (zh_x + 300, zh_y + 40), (0, 0, 0), 1)
+        cv2.rectangle(
+            frame, (zh_x, zh_y), (zh_x + 300, zh_y + 50), self.COLORS["text_input"], -1
+        )
+        cv2.rectangle(frame, (zh_x, zh_y), (zh_x + 300, zh_y + 50), (0, 0, 0), 1)
         name_zh_text = self.jutsu_name_zh if self.jutsu_name_zh else "點擊輸入中文名稱"
         CvDrawText.puttext(
-            frame, name_zh_text, (zh_x + 10, zh_y + 8), self.font_path, 24, (0, 0, 0)
+            frame, name_zh_text, (zh_x + 10, zh_y + 10), self.font_path, 24, (0, 0, 0)
         )
         self.button_areas.append((zh_x, zh_y, zh_x + 300, zh_y + 40, "edit_zh"))
 
-        # 英文名稱輸入框
         en_x = zh_x + 350
-        cv2.rectangle(frame, (en_x, zh_y), (en_x + 300, zh_y + 40), (200, 200, 200), -1)
-        cv2.rectangle(frame, (en_x, zh_y), (en_x + 300, zh_y + 40), (0, 0, 0), 1)
+        cv2.rectangle(
+            frame, (en_x, zh_y), (en_x + 350, zh_y + 50), self.COLORS["text_input"], -1
+        )
+        cv2.rectangle(frame, (en_x, zh_y), (en_x + 350, zh_y + 50), (0, 0, 0), 1)
         name_en_text = (
             self.jutsu_name_en if self.jutsu_name_en else "Click to input English name"
         )
@@ -145,22 +184,51 @@ class EditScreen(BaseScreen):
         )
         self.button_areas.append((en_x, zh_y, en_x + 300, zh_y + 40, "edit_en"))
 
-        # 2. 顯示當前序列（上方）
+        # 顯示當前序列和Backspace按鈕
         sequence_text = (
-            "目前序列: " + " → ".join([g["zh"] for g in self.current_sequence])
+            "目前序列: " + "→".join([g["zh"] for g in self.current_sequence])
             if self.current_sequence
             else "目前序列: (空)"
         )
         CvDrawText.puttext(
-            frame, sequence_text, (50, 100), self.font_path, 36, (0, 0, 0)
+            frame, sequence_text, (50, 110), self.font_path, 36, (0, 0, 0)
+        )
+        # Backspace按鈕
+        backspace_x = 940
+        backspace_y = 110
+        backspace_width = 220
+        backspace_height = 60
+        cv2.rectangle(
+            frame,
+            (backspace_x, backspace_y),
+            (backspace_x + backspace_width, backspace_y + backspace_height),
+            self.COLORS["func_btn"]["backspace"],
+            -1,
+        )
+        CvDrawText.puttext(
+            frame,
+            "Backspace",
+            (backspace_x + 25, backspace_y + 8),
+            self.font_path,
+            30,
+            (255, 255, 255),
+        )
+        self.function_buttons.append(
+            (
+                backspace_x,
+                backspace_y,
+                backspace_x + backspace_width,
+                backspace_y + backspace_height,
+                "delete",
+            )
         )
 
-        # 3. 繪製手勢按鈕（中間）
+        # 手勢按鈕
         button_width = 80
         button_height = 80
         gap = 10
         start_x = 50
-        start_y = 150
+        start_y = 200
         per_row = 8
 
         for i, gesture in enumerate(self.gestures):
@@ -170,12 +238,16 @@ class EditScreen(BaseScreen):
             y = start_y + row * (button_height + gap)
 
             cv2.rectangle(
-                frame, (x, y), (x + button_width, y + button_height), (0, 0, 255), -1
+                frame,
+                (x, y),
+                (x + button_width, y + button_height),
+                self.COLORS["gesture_btn"],
+                -1,
             )
             CvDrawText.puttext(
                 frame,
                 gesture["zh"],
-                (x + 20, y + 25),
+                (x + 25, y + 20),
                 self.font_path,
                 30,
                 (255, 255, 255),
@@ -184,62 +256,38 @@ class EditScreen(BaseScreen):
                 (x, y, x + button_width, y + button_height, gesture)
             )
 
-        # 4. 繪製功能按鈕（下方）
+        # 功能按鈕
         button_y = WINDOW_SIZE[1] - 150
+        func_button_width = 150
+        func_button_height = 60
 
-        # 返回按鈕
-        back_x = 50
-        cv2.rectangle(
-            frame, (back_x, button_y), (back_x + 150, button_y + 50), (0, 0, 255), -1
-        )
-        CvDrawText.puttext(
-            frame,
-            "返回",
-            (back_x + 45, button_y + 10),
-            self.font_path,
-            30,
-            (255, 255, 255),
-        )
-        self.function_buttons.append(
-            (back_x, button_y, back_x + 150, button_y + 50, "back")
-        )
+        # 功能按鈕配置
+        buttons = [("返回", "back", 50), ("清空", "clear", 250), ("儲存", "save", 450)]
 
-        # 刪除按鈕
-        delete_x = back_x + 200
-        cv2.rectangle(
-            frame,
-            (delete_x, button_y),
-            (delete_x + 150, button_y + 50),
-            (0, 0, 255),
-            -1,
-        )
-        CvDrawText.puttext(
-            frame,
-            "刪除",
-            (delete_x + 45, button_y + 10),
-            self.font_path,
-            30,
-            (255, 255, 255),
-        )
-        self.function_buttons.append(
-            (delete_x, button_y, delete_x + 150, button_y + 50, "delete")
-        )
-
-        # 儲存按鈕
-        save_x = delete_x + 200
-        cv2.rectangle(
-            frame, (save_x, button_y), (save_x + 150, button_y + 50), (0, 0, 255), -1
-        )
-        CvDrawText.puttext(
-            frame,
-            "儲存",
-            (save_x + 45, button_y + 10),
-            self.font_path,
-            30,
-            (255, 255, 255),
-        )
-        self.function_buttons.append(
-            (save_x, button_y, save_x + 150, button_y + 50, "save")
-        )
+        for text, action, x_pos in buttons:
+            cv2.rectangle(
+                frame,
+                (x_pos, button_y),
+                (x_pos + func_button_width, button_y + func_button_height),
+                self.COLORS["func_btn"][action],
+                -1,
+            )
+            CvDrawText.puttext(
+                frame,
+                text,
+                (x_pos + 45, button_y + 10),
+                self.font_path,
+                30,
+                (255, 255, 255),
+            )
+            self.function_buttons.append(
+                (
+                    x_pos,
+                    button_y,
+                    x_pos + func_button_width,
+                    button_y + func_button_height,
+                    action,
+                )
+            )
 
         return frame

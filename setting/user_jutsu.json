@@ -1,16 +1,14 @@
 [
   {
+    "id": 7,
     "name_zh": "測試",
     "name_en": "test",
     "sequence": [
-      "Ne(Rat)",
-      "Ushi(Ox)",
-      "Tora(Tiger)",
-      "U(Hare)",
-      "I(Boar)",
-      "Inu(Dog)",
-      "Tori(Bird)",
-      "Mi(Snake)"
+      1,
+      2,
+      3,
+      4,
+      5
     ]
   }
 ]
