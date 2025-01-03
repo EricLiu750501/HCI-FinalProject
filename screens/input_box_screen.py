@@ -1,7 +1,8 @@
 import sys
 import cv2
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QInputDialog
+import tkinter as tk
+from tkinter import simpledialog
 
 from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE
@@ -14,6 +15,10 @@ class InputBoxScreen(BaseScreen):
         self.font_path = "assets/fonts/NotoSansTC-VariableFont_wght.ttf"
         self.button_areas = []
         self.frame = None
+        
+        # 初始化 Tkinter root window
+        self.root = tk.Tk()
+        self.root.withdraw()  # 隱藏主窗口
 
     def draw(self, frame):
         # 保存原始圖像的副本
@@ -79,10 +84,9 @@ class InputBoxScreen(BaseScreen):
             
     # Private method here ------------------------
     def __get_user_input(self):
-        # Create the PyQt application
-        app = QApplication(sys.argv)
-        text, ok = QInputDialog.getText(None, "Input Dialog", "Enter your text:")
-        if ok:  # Check if the user clicked "OK"
-            return text
+        # use tkinter
+        result = simpledialog.askstring("Title", "the message u want to pass to screen")
+        if result:  # Check if the user clicked "OK"
+            return result
         return None
     
