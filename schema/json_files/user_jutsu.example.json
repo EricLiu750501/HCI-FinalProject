@@ -1,0 +1,27 @@
+{
+    "_comment1": "real file is in setting/user_jutsu.json",
+    "_comment2": "each sequence cantains list of g_id, can not be an empty list",
+
+    
+    "user_jutsu": [
+        {
+            "id": 13,
+            "name_zh": "範例",
+            "name_en": "example",
+            "sequence": [
+                1,
+                2,
+                3
+            ]
+        },
+        {
+            "id": 14,
+            "name_zh": "範例 2",
+            "name_en": "example 2",
+            "sequence": [
+                4,
+                5
+            ]
+        }
+    ]
+}
