@@ -28,15 +28,15 @@ class CheckGestureScreen(BaseScreen):
         # init some private varibles here
         self.font_path = FONT
         self.button_areas = []
-
+        
         # Load labels
         with open("setting/labels.csv", encoding="utf8") as f:
             labels = csv.reader(f)
             self.labels = [row for row in labels]
         
-        # load gestures lm's distances
-        with open("setting/created_gestures_d.json", encoding="utf8") as created_gestures_d:
-            self.created_gestures_d = json.load(created_gestures_d)
+        # set a flag to track if this is user's first time checking gesture
+        self.first_time_check = True
+        self.created_gestures_d = None
             
         # Camera setup
         # self.cap = None
@@ -199,15 +199,20 @@ class CheckGestureScreen(BaseScreen):
     def handle_click(self, x, y):
         for x1, y1, x2, y2 in self.button_areas:
             if x1 <= x <= x2 and y1 <= y <= y2:
+                # free openCV cam for next usage
                 self.cap.release()
                 self.cap = None
+                
+                # reset flags so the next time we reload the JSON
+                self.first_time_check = True
+                
                 self.callback("back")
                 break
             
     def release_cap(self):
         self.cap.release()
 
-    # Private methods here ---------------------
+    # Private methods here --------------------------------------
 
     def __draw_buttons(self, frame):
         # init some button attributes
@@ -270,9 +275,12 @@ class CheckGestureScreen(BaseScreen):
         if len(right_d) == 0 and len(left_d) == 0:
             return None
         
-        # re-load the file in case user added new gestures
-        with open("setting/created_gestures_d.json", encoding="utf8") as created_gestures_d:
-            self.created_gestures_d = json.load(created_gestures_d)
+        # re-load the file in case user added new gestures (if necessery)
+        if self.first_time_check:
+            with open("setting/created_gestures_d.json", mode="r", encoding="utf8") as created_gestures_d:
+                self.created_gestures_d = json.load(created_gestures_d)
+            
+            self.first_time_check = False
             
         for created_gesture_d in self.created_gestures_d:
             # for each created gesture
@@ -303,8 +311,8 @@ class CheckGestureScreen(BaseScreen):
                 right_mean_d /= len(right_d)
                 left_mean_d /= len(left_d)
                 
-                print(f"right: {right_mean_d}")
-                print(f"left: {left_mean_d}")
+                # print(f"right: {right_mean_d}")
+                # print(f"left: {left_mean_d}")
                 
                 if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
@@ -323,8 +331,7 @@ class CheckGestureScreen(BaseScreen):
                 # take mean
                 right_mean_d /= len(right_d)
                 
-                print(f"right: {right_mean_d}")
-                # print(f"left: {left_mean_d}")
+                # print(f"right: {right_mean_d}")
                 
                 if right_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
@@ -342,7 +349,7 @@ class CheckGestureScreen(BaseScreen):
                 # take mean
                 left_mean_d /= len(left_d)
                 
-                print(f"left: {left_mean_d}")
+                # print(f"left: {left_mean_d}")
                 
                 if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
