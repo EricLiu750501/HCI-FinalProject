@@ -117,7 +117,7 @@ class EditScreen(BaseScreen):
         user_sequences = self._load_existing_sequences()
         default_sequence = self._load_default_sequences()
         total_sequence = user_sequences + default_sequence
-        print(total_sequence)
+
         # 檢查是否有重複的名稱
         for seq in total_sequence:
             if seq["name_zh"] == self.jutsu_name_zh:
