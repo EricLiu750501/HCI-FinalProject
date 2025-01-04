@@ -121,12 +121,18 @@ class AddGestureScreen(BaseScreen):
         for x1, y1, x2, y2 in self.button_areas:
             if x1 <= x <= x2 and y1 <= y <= y2:
                 self.cap.release()
+                self.cap = None
                 self.callback("back")
                 break
 
 
     def __face_tracking(self):
-            
+        if self.cap == None:
+            self.cap = cv2.VideoCapture(0)  # Open default camera
+            if not self.cap.isOpened():
+                print("Cannot open camera, please check the device.")
+                self.cap = None
+                
         success, frame = self.cap.read()
 
         if success:

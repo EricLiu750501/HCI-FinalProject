@@ -39,6 +39,7 @@ class CheckGestureScreen(BaseScreen):
             self.created_gestures_d = json.load(created_gestures_d)
             
         # Camera setup
+        # self.cap = None
         self.cap = cv2.VideoCapture(0)  # Open default camera
         if not self.cap.isOpened():
             print("Cannot open camera, please check the device.")
@@ -78,6 +79,12 @@ class CheckGestureScreen(BaseScreen):
             frame, "檢查手勢", (10, 10), self.font_path, 48, color=(0, 0, 0)
         )
 
+        if self.cap == None:
+            self.cap = cv2.VideoCapture(0)  # Open default camera
+            if not self.cap.isOpened():
+                print("Cannot open camera, please check the device.")
+                self.cap = None
+            
         # start showing the cam frame
         ret, image = self.cap.read()
 
@@ -178,6 +185,7 @@ class CheckGestureScreen(BaseScreen):
         for x1, y1, x2, y2 in self.button_areas:
             if x1 <= x <= x2 and y1 <= y <= y2:
                 self.cap.release()
+                self.cap = None
                 self.callback("back")
                 break
             
