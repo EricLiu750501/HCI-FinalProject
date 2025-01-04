@@ -40,6 +40,7 @@ class EditScreen(BaseScreen):
 
     def _load_gestures(self):
         gestures = []
+        # 讀取 labels.csv
         with open("setting/labels.csv", "r", encoding="utf-8") as file:
             reader = csv.reader(file)
             i = 1
@@ -47,6 +48,23 @@ class EditScreen(BaseScreen):
                 if row[1] != "無":
                     gestures.append({"en": row[0], "zh": row[1], "id": i})
                     i += 1
+
+        # 讀取 created_gestures_d.json
+        try:
+            with open("setting/created_gestures_d.json", "r", encoding="utf-8") as file:
+                created_gestures = json.load(file)
+                for gesture in created_gestures:
+                    gestures.append(
+                        {
+                            "en": gesture.get("g_name_en", "Unknown"),
+                            "zh": gesture.get("g_name_zh", "未知"),
+                            "id": gesture.get("g_id", i),
+                        }
+                    )
+                    i += 1
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("Warning: created_gestures_d.json not found or invalid format.")
+
         return gestures
 
     def _get_user_input(self, prompt):
