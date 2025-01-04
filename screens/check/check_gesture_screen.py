@@ -21,7 +21,7 @@ class CheckGestureScreen(BaseScreen):
 
         # init some Constant here
         self.DETECTION_CONFIDENCE = 0.75  # for naruto gestures
-        self.DETECTION_MIN_D = 0.05  # for added gestures
+        self.DETECTION_MIN_D = 0.03  # for added gestures
         self.Hand_Detection_Confidence = 0.8
         self.Hand_Tracking_Confidence = 0.8
 
@@ -72,13 +72,14 @@ class CheckGestureScreen(BaseScreen):
 
 
     def draw(self, frame):
-        frame[:] = (150, 150, 150)  # white BG
+        frame[:] = (150, 150, 150)  # gray BG
 
         # add title
         CvDrawText.puttext(
             frame, "檢查手勢", (10, 10), self.font_path, 48, color=(0, 0, 0)
         )
 
+        # reload cap if needed
         if self.cap == None:
             self.cap = cv2.VideoCapture(0)  # Open default camera
             if not self.cap.isOpened():
@@ -165,15 +166,29 @@ class CheckGestureScreen(BaseScreen):
                     gesture_id = self.__check_current_gesture(right_d, left_d)
                     
                     if gesture_id != None:
-                        # find the gesture
+                        # Congrats! find the gesture, draw & display it
                         
-                        # draw the result of lms first
+                        # draw the result of lms in cap image first
                         for hand_landmarks in results.multi_hand_landmarks:
                             self.drawing_utils.draw_landmarks(
                                 image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS
                             )
                             
                         # display result to screen
+                        start_x = 350
+                        start_y = WINDOW_SIZE[1] - 90
+
+                        CvDrawText.puttext(
+                            frame,
+                            f"Gesture's ID: {gesture_id}, Gesture's Name: {self.created_gestures_d[gesture_id - 13]['g_name_zh']}",
+                            (start_x, start_y),
+                            self.font_path,
+                            30,
+                            (0, 0, 0),
+                        )
+                        
+                        # reset gesture_id
+                        gesture_id = None
 
             # resize the cam frame to fit the frame
             frame[70 : 70 + 480, 300 : 300 + 640] = cv2.resize(image, (640, 480))
@@ -251,7 +266,7 @@ class CheckGestureScreen(BaseScreen):
     def __check_current_gesture(self, right_d, left_d):
         # Mediapipe will bug out at line 138
         # there are no hands on the screen but it says there are...
-        # Consequently, divide by 0 error occurs, adding this if to protect
+        # Consequently, divide by 0 error occurs, adding this if statement to protect
         if len(right_d) == 0 and len(left_d) == 0:
             return None
         
@@ -291,11 +306,9 @@ class CheckGestureScreen(BaseScreen):
                 print(f"right: {right_mean_d}")
                 print(f"left: {left_mean_d}")
                 
-                # if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
-                    # print(f"{right_d}, {left_d}")
-                    
-                    # return created_gesture_d["g_id"]
+                    return created_gesture_d["g_id"]
             elif created_gesture_d["left_d"] == []:
                 # right hand only:
                 if len(right_d) == 0:
@@ -313,14 +326,12 @@ class CheckGestureScreen(BaseScreen):
                 print(f"right: {right_mean_d}")
                 # print(f"left: {left_mean_d}")
                 
-                # if right_mean_d < self.DETECTION_MIN_D:
+                if right_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
-                    # print(f"{right_d}")
-                    
-                    # return created_gesture_d["g_id"]
+                    return created_gesture_d["g_id"]
             else:                                
                 # left hand only:
-                if len(right_d) == 0:
+                if len(left_d) == 0:
                     # user currently doesnt use right hand, goto next sample
                     continue
                 
@@ -333,11 +344,8 @@ class CheckGestureScreen(BaseScreen):
                 
                 print(f"left: {left_mean_d}")
                 
-                # if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
-                    # print(f"{left_d}")
-                    
-                    # return created_gesture_d["g_id"]
-                
+                    return created_gesture_d["g_id"]
                 
         return None
