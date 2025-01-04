@@ -1,7 +1,6 @@
 # screens/home_screen.py
 import cv2
 from screens.base_screen import BaseScreen
-from screens.practice.practice_screen import PracticeScreen
 from utils.constants import *
 from utils.drawing import draw_button
 from utils.CvDrawText import CvDrawText
