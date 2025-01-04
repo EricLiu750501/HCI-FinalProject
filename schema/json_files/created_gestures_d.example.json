@@ -9,7 +9,6 @@
             "g_id": 12,
             "g_name_zh": "雙",
             "g_name_en": "example",
-            "hand_num": 2,
             "right_d": [
                 0.01,
                 0.02,
@@ -25,7 +24,6 @@
             "g_id": 13,
             "g_name_zh": "右",
             "g_name": "example right",
-            "hand_num": 1,
             "right_d": [
                 0.01,
                 0.02,
@@ -37,7 +35,6 @@
             "g_id": 14,
             "g_name_zh": "左",
             "g_name": "example left",
-            "hand_num": 2,
             "right_d": [],
             "left_d": [
                 0.01,
