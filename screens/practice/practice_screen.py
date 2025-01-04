@@ -15,54 +15,18 @@ from utils.CvDrawText import CvDrawText
 class PracticeScreen(BaseScreen):
     def __init__(self, callback):
         super().__init__(callback)
+        self.background = None
+        self.jutsu_list = []
+        self.tolerance_terms = {}
+        self.load_resources()  # 初始化時載入一次
 
-        try:
-            # 載入背景圖片
-            self.background = cv2.imread(
-                "assets/images/practice_background.png", cv2.IMREAD_COLOR
-            )
-            if self.background is None:
-                raise FileNotFoundError("無法載入背景圖片")
-            self.background = cv2.resize(self.background, WINDOW_SIZE)
-
-            # 載入忍術列表
-            self.jutsu_list = []
-            with open("setting/default_jutsu.json", encoding="utf-8") as f:
-                default_jutsu = json.load(f)
-
-            with open("setting/user_jutsu.json", encoding="utf-8") as f:
-                user_jutsu = json.load(f)
-
-            # 合併預設與用戶設定並正規化
-            combined_jutsu = default_jutsu + user_jutsu
-            for jutsu in combined_jutsu:
-                chinese_name = jutsu["name_zh"].strip()  # 中文名稱
-                english_name = (
-                    jutsu["name_en"].strip().lower()
-                )  # 英文名稱（轉小寫方便匹配）
-                normalized_chinese_name = chinese_name.replace(" ", "").lower()
-                self.jutsu_list.append(
-                    {
-                        "chinese_name": chinese_name,
-                        "english_name": english_name,
-                        "normalized_chinese_name": normalized_chinese_name,
-                        "index": int(jutsu["id"]),
-                    }
-                )
-
-            # 載入容忍詞表並正規化
-            with open("setting/tolerance_terms.json", encoding="utf8") as f:
-                raw_tolerance_terms = json.load(f)
-
-            self.tolerance_terms = {
-                key.replace(" ", "").lower(): [
-                    term.replace(" ", "").lower() for term in terms
-                ]
-                for key, terms in raw_tolerance_terms.items()
-            }
-
-        except Exception as e:
-            print(f"初始化錯誤: {e}")
+        # 載入背景圖片
+        self.background = cv2.imread(
+            "assets/images/practice_background.png", cv2.IMREAD_COLOR
+        )
+        if self.background is None:
+            raise FileNotFoundError("無法載入背景圖片")
+        self.background = cv2.resize(self.background, WINDOW_SIZE)
 
         # 載入麥克風圖標
         try:
@@ -254,3 +218,34 @@ class PracticeScreen(BaseScreen):
                         self.listen_thread.join(timeout=1)
                     self.callback("back")
                 break
+
+    def load_resources(self):
+        # 載入忍術列表
+        self.jutsu_list = []
+        with open("setting/default_jutsu.json", encoding="utf-8") as f:
+            default_jutsu = json.load(f)
+        with open("setting/user_jutsu.json", encoding="utf-8") as f:
+            user_jutsu = json.load(f)
+        combined_jutsu = default_jutsu + user_jutsu
+        for jutsu in combined_jutsu:
+            chinese_name = jutsu["name_zh"].strip()
+            english_name = jutsu["name_en"].strip().lower()
+            normalized_chinese_name = chinese_name.replace(" ", "").lower()
+            self.jutsu_list.append(
+                {
+                    "chinese_name": chinese_name,
+                    "english_name": english_name,
+                    "normalized_chinese_name": normalized_chinese_name,
+                    "index": int(jutsu["id"]),
+                }
+            )
+
+        # 載入容忍詞表
+        with open("setting/tolerance_terms.json", encoding="utf8") as f:
+            raw_tolerance_terms = json.load(f)
+        self.tolerance_terms = {
+            key.replace(" ", "").lower(): [
+                term.replace(" ", "").lower() for term in terms
+            ]
+            for key, terms in raw_tolerance_terms.items()
+        }
