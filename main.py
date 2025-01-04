@@ -1,6 +1,7 @@
 # main.py
 import cv2
 import numpy as np
+import mediapipe as mp
 import pygame
 from screens.home_screen import HomeScreen
 
@@ -15,9 +16,12 @@ from screens.input_box_screen import InputBoxScreen
 
 from utils.constants import WINDOW_SIZE
 
+import tkinter as tk
 
 class GameManager:
     def __init__(self):
+        self.root = tk.Tk() 
+        self.root.withdraw()
         pygame.mixer.init()
         self.click_sound = pygame.mixer.Sound("assets/sounds/click.wav")
 
@@ -88,6 +92,9 @@ class GameManager:
             pygame.mixer.Sound.play(self.click_sound)
 
     def run(self):
+        
+    
+
         while self.running:
             # Create fresh frame from background
             frame = self.background.copy()
