@@ -1,7 +1,7 @@
 {
     "_comment1": "real file is in setting/created_gestures.json",
-    "_comment2": "each right_d and left_d should contain 20 positive float numbers or a complete empty list",
-    "_comment3": "each g_name_zh should only be 1 chinese word long"
+    "_comment2": "each right_d and left_d should contain 20 float numbers or a complete empty list",
+    "_comment3": "each g_name_zh should only be 1 chinese word long",
 
 
     "created_gestures_d": [
