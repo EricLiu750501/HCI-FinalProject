@@ -13,8 +13,8 @@ class EditScreen(BaseScreen):
         super().__init__(callback)
         self.font_path = FONT_BOLD
         self.current_sequence = []
-        self.gestures = self._load_gestures()
-        self.current_size = len(self._load_existing_sequences())
+        self.gestures = self.__load_gestures()
+        self.current_size = len(self.__load_existing_sequences())
         self.button_areas = []
         self.gesture_buttons = []
         self.function_buttons = []
@@ -38,7 +38,7 @@ class EditScreen(BaseScreen):
         self.root = tk.Tk()
         self.root.withdraw()  # 隱藏主窗口
 
-    def _load_gestures(self):
+    def __load_gestures(self):
         gestures = []
         # 讀取 labels.csv
         with open("setting/labels.csv", "r", encoding="utf-8") as file:
@@ -67,61 +67,18 @@ class EditScreen(BaseScreen):
 
         return gestures
 
-    def _get_user_input(self, prompt):
+    def __get_user_input(self, prompt):
         """使用 Tkinter dialog 獲取使用者輸入"""
         result = simpledialog.askstring("輸入", prompt)
         return result if result else ""
 
-    def handle_click(self, x, y):
-        # 檢查名稱輸入區域
-        for bx, by, bx2, by2, action in self.button_areas:
-            if bx <= x <= bx2 and by <= y <= by2:
-                if action == "edit_zh":
-                    self.is_editing_zh = True
-                    self.is_editing_en = False
-                    name = self._get_user_input("請輸入中文名稱")
-                    if name:
-                        self.jutsu_name_zh = name
-                    return
-                elif action == "edit_en":
-                    self.is_editing_zh = False
-                    self.is_editing_en = True
-                    name = self._get_user_input("Please input English name")
-                    if name:
-                        self.jutsu_name_en = name
-                    return
-
-        # 檢查手勢按鈕
-        for bx, by, bx2, by2, gesture in self.gesture_buttons:
-            if bx <= x <= bx2 and by <= y <= by2:
-                if len(self.current_sequence) >= 10:
-                    tk.messagebox.showwarning("警告", "最多只能輸入10個手勢！")
-                    return
-                self.current_sequence.append(gesture)
-                return
-
-        # 檢查功能按鈕
-        for bx, by, bx2, by2, action in self.function_buttons:
-            if bx <= x <= bx2 and by <= y <= by2:
-                if action == "back":
-                    self._clear_content()  # 清空內容
-                    self.callback("back")
-                elif action == "delete":
-                    if self.current_sequence:
-                        self.current_sequence.pop()
-                elif action == "save":
-                    self._save_sequence()
-                elif action == "clear":
-                    self._clear_content()  # 呼叫清空功能
-                break
-
-    def _clear_content(self):
+    def __clear_content(self):
         """清空當前編輯的內容"""
         self.current_sequence = []
         self.jutsu_name_zh = ""
         self.jutsu_name_en = ""
 
-    def _save_sequence(self):
+    def __save_sequence(self):
         if (
             not self.current_sequence
             or not self.jutsu_name_zh
@@ -132,8 +89,8 @@ class EditScreen(BaseScreen):
             return
 
         # 載入現有的術語
-        user_sequences = self._load_existing_sequences()
-        default_sequence = self._load_default_sequences()
+        user_sequences = self.__load_existing_sequences()
+        default_sequence = self.__load_default_sequences()
         total_sequence = user_sequences + default_sequence
 
         # 檢查是否有重複的名稱
@@ -165,19 +122,62 @@ class EditScreen(BaseScreen):
         self.jutsu_name_zh = ""
         self.jutsu_name_en = ""
 
-    def _load_existing_sequences(self):
+    def __load_existing_sequences(self):
         try:
             with open("setting/user_jutsu.json", "r", encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return []
 
-    def _load_default_sequences(self):
+    def __load_default_sequences(self):
         try:
             with open("setting/default_jutsu.json", "r", encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return []
+
+    def handle_click(self, x, y):
+        # 檢查名稱輸入區域
+        for bx, by, bx2, by2, action in self.button_areas:
+            if bx <= x <= bx2 and by <= y <= by2:
+                if action == "edit_zh":
+                    self.is_editing_zh = True
+                    self.is_editing_en = False
+                    name = self.__get_user_input("請輸入中文名稱")
+                    if name:
+                        self.jutsu_name_zh = name
+                    return
+                elif action == "edit_en":
+                    self.is_editing_zh = False
+                    self.is_editing_en = True
+                    name = self.__get_user_input("Please input English name")
+                    if name:
+                        self.jutsu_name_en = name
+                    return
+
+        # 檢查手勢按鈕
+        for bx, by, bx2, by2, gesture in self.gesture_buttons:
+            if bx <= x <= bx2 and by <= y <= by2:
+                if len(self.current_sequence) >= 10:
+                    tk.messagebox.showwarning("警告", "最多只能輸入10個手勢！")
+                    return
+                self.current_sequence.append(gesture)
+                return
+
+        # 檢查功能按鈕
+        for bx, by, bx2, by2, action in self.function_buttons:
+            if bx <= x <= bx2 and by <= y <= by2:
+                if action == "back":
+                    self.__clear_content()  # 清空內容
+                    self.callback("back")
+                elif action == "delete":
+                    if self.current_sequence:
+                        self.current_sequence.pop()
+                elif action == "save":
+                    self.__save_sequence()
+                elif action == "clear":
+                    self.__clear_content()  # 呼叫清空功能
+                break
 
     def draw(self, frame):
         self.button_areas = []
