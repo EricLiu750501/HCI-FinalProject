@@ -269,8 +269,8 @@ class AddGestureScreen(BaseScreen):
         
         with open(file_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
-            gesture_hand_points['g_id'] = len(data['created_gestures_d']) + 13
-            data['created_gestures_d'].append(gesture_hand_points)
+            gesture_hand_points['g_id'] = len(data) + 13
+            data.append(gesture_hand_points)
         
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
