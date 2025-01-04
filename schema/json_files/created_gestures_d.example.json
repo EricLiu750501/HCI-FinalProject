@@ -1,0 +1,46 @@
+{
+    "_comment1": "real file is in setting/created_gestures.json",
+    "_comment2": "each right_d and left_d should contain 20 float numbers or a complete empty list",
+    "_comment3": "each g_name_zh should only be 1 chinese word long",
+
+
+    "created_gestures_d": [
+        {
+            "g_id": 12,
+            "g_name_zh": "雙",
+            "g_name_en": "example",
+            "right_d": [
+                0.01,
+                0.02,
+                0.015
+            ],
+            "left_d": [
+                0.01,
+                0.02,
+                0.015
+            ]
+        },
+        {
+            "g_id": 13,
+            "g_name_zh": "右",
+            "g_name": "example right",
+            "right_d": [
+                0.01,
+                0.02,
+                0.015
+            ],
+            "left_d": []
+        },
+        {
+            "g_id": 14,
+            "g_name_zh": "左",
+            "g_name": "example left",
+            "right_d": [],
+            "left_d": [
+                0.01,
+                0.02,
+                0.015
+            ]
+        }
+    ]
+}
