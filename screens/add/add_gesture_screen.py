@@ -217,10 +217,10 @@ class AddGestureScreen(BaseScreen):
     def __record_gesture(self, hands_results):
         print("Recoding ...")
         gesture_hand_points = {
-                'gid' : 0,
+                'g_id' : 13,   # 前12個預設手勢是固定的，從13開始自定義
                 "g_name_zh": "無",
                 'g_name_en' : 'Unknow',
-                'hand_num' : 0,
+                # 'hand_num' : 0,
                 'left_d' : [],
                 'right_d' : []
             }
@@ -239,10 +239,10 @@ class AddGestureScreen(BaseScreen):
                 
                 if hand_type == "Left" :
                     gesture_hand_points['left_d'] = array
-                    gesture_hand_points["hand_num"] += 1
+                    # gesture_hand_points["hand_num"] += 1
                 elif hand_type == "Right":
                     gesture_hand_points['right_d'] = array
-                    gesture_hand_points["hand_num"] += 1
+                    # gesture_hand_points["hand_num"] += 1
         
         # 開啟 Tkinter 視窗，讓使用者輸入招式名稱
         is_add, name_zh, name_en = self.__tk_get_char()
@@ -255,24 +255,26 @@ class AddGestureScreen(BaseScreen):
         gesture_hand_points['g_name_en'] = name_en
 
         # 定義資料夾
-        directory = 'setting/custom_gestures'
+        directory = 'setting/'
+        file_name = f'created_gestures_d.json'
+        file_path = os.path.join(directory, file_name)
 
         # 確保資料夾存在
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        # 找出資料夾中已存在的 .json 檔案數量
-        json_files = [f for f in os.listdir(directory) if f.endswith('.json')]
-        next_file_number = len(json_files) + 1  # 計算下個檔案編號
-
-        # 定義新檔案名稱, set gid
-        file_name = f'gesture_hand_points{next_file_number}.json'
-        file_path = os.path.join(directory, file_name)
-        gesture_hand_points['gid'] = next_file_number 
-
-        # 寫入 JSON 檔案
+        if not os.path.exists(file_path):
+            print(f"{file_path} 不存在")
+            return None
+        
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            gesture_hand_points['g_id'] = len(data['created_gestures_d']) + 13
+            data['created_gestures_d'].append(gesture_hand_points)
+        
         with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(gesture_hand_points, file, ensure_ascii=False, indent=4)
+            json.dump(data, file, ensure_ascii=False, indent=4)
+       
 
         print("Recoding Done!")
 
