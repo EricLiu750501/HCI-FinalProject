@@ -110,13 +110,8 @@ class AddGestureScreen(BaseScreen):
 
         image = self.__face_tracking()
 
-       
-            
-
-
-
-        image = cv2.resize(image, (800, 600))
-        frame[50:650, 50:850] = image
+        image = cv2.resize(image, (640, 480))
+        frame[50:50 + 480, 50:50 + 640] = image
         return frame
     
 
@@ -125,6 +120,7 @@ class AddGestureScreen(BaseScreen):
     def handle_click(self, x, y):
         for x1, y1, x2, y2 in self.button_areas:
             if x1 <= x <= x2 and y1 <= y <= y2:
+                self.cap.release()
                 self.callback("back")
                 break
 
@@ -207,8 +203,8 @@ class AddGestureScreen(BaseScreen):
             
             
             self.frame_count_i = (self.frame_count_i + 1 ) % self.frame_count
-
-
+        else:
+            print("error, cant open frame")
         
         return frame
 
@@ -233,9 +229,9 @@ class AddGestureScreen(BaseScreen):
                 
                 array = [ [0.0,0.0,0.0] for i in range(20)]
                 for i in range(1, len(landmarks)):
-                        array[i-1][0] = landmarks[i].x - landmarks[0].x
-                        array[i-1][1] = landmarks[i].y - landmarks[0].y
-                        array[i-1][2] = landmarks[i].z - landmarks[0].z
+                    cur_vector = [landmarks[i].x, landmarks[i].y, landmarks[i].z]
+                    base_vector = [landmarks[0].x, landmarks[0].y, landmarks[0].z]
+                    array[i-1] = np.linalg.norm(np.array(cur_vector) - np.array(base_vector))
                 
                 if hand_type == "Left" :
                     gesture_hand_points['left_d'] = array

@@ -92,9 +92,6 @@ class GameManager:
             pygame.mixer.Sound.play(self.click_sound)
 
     def run(self):
-        
-    
-
         while self.running:
             # Create fresh frame from background
             frame = self.background.copy()

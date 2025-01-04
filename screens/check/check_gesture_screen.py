@@ -22,8 +22,8 @@ class CheckGestureScreen(BaseScreen):
         # init some Constant here
         self.DETECTION_CONFIDENCE = 0.75  # for naruto gestures
         self.DETECTION_MIN_D = 0.05  # for added gestures
-        self.Hand_Detection_Confidence = 0.1
-        self.Hand_Tracking_Confidence = 0.1
+        self.Hand_Detection_Confidence = 0.8
+        self.Hand_Tracking_Confidence = 0.8
 
         # init some private varibles here
         self.font_path = FONT
@@ -35,7 +35,7 @@ class CheckGestureScreen(BaseScreen):
             self.labels = [row for row in labels]
         
         # load gestures lm's distances
-        with open("setting/created_gestures.json", encoding="utf8") as created_gestures_d:
+        with open("setting/created_gestures_d.json", encoding="utf8") as created_gestures_d:
             self.created_gestures_d = json.load(created_gestures_d)
             
         # Camera setup
@@ -177,8 +177,12 @@ class CheckGestureScreen(BaseScreen):
     def handle_click(self, x, y):
         for x1, y1, x2, y2 in self.button_areas:
             if x1 <= x <= x2 and y1 <= y <= y2:
+                self.cap.release()
                 self.callback("back")
                 break
+            
+    def release_cap(self):
+        self.cap.release()
 
     # Private methods here ---------------------
 
@@ -237,6 +241,16 @@ class CheckGestureScreen(BaseScreen):
         return [distance_right, distance_left]
     
     def __check_current_gesture(self, right_d, left_d):
+        # Mediapipe will bug out at line 138
+        # there are no hands on the screen but it says there are...
+        # Consequently, divide by 0 error occurs, adding this if to protect
+        if len(right_d) == 0 and len(left_d) == 0:
+            return None
+        
+        # re-load the file in case user added new gestures
+        with open("setting/created_gestures_d.json", encoding="utf8") as created_gestures_d:
+            self.created_gestures_d = json.load(created_gestures_d)
+            
         for created_gesture_d in self.created_gestures_d:
             # for each created gesture
             right_mean_d = 0
@@ -245,53 +259,77 @@ class CheckGestureScreen(BaseScreen):
             if created_gesture_d["right_d"] != [] and created_gesture_d["left_d"] != []:
                 # Both hands comparation
                 # right hand part:
+                if len(right_d) == 0:
+                    # user currently doesnt use right hand, goto next sample
+                    continue
+                
                 for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
                     # compare
                     right_mean_d += abs(sample_d - cur_d)
                     
                 # left hand part:
+                if len(left_d) == 0:
+                    # user currently doesnt use left hand, goto next sample
+                    continue
+                
                 for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
                     # compare
                     left_mean_d += abs(sample_d - cur_d)
                     
                 # take mean
-                right_mean_d / len(right_d)
-                left_mean_d / len(left_d)
+                right_mean_d /= len(right_d)
+                left_mean_d /= len(left_d)
                 
-                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                print(f"right: {right_mean_d}")
+                print(f"left: {left_mean_d}")
+                
+                # if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
                     # print(f"{right_d}, {left_d}")
                     
-                    return created_gesture_d["g_id"]
+                    # return created_gesture_d["g_id"]
             elif created_gesture_d["left_d"] == []:
                 # right hand only:
+                if len(right_d) == 0:
+                    # user currently doesnt use right hand, goto next sample
+                    continue
+                
                 for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
                     # compare
                     right_mean_d += abs(sample_d - cur_d)
                     
                 
                 # take mean
-                right_mean_d / len(right_d)
+                right_mean_d /= len(right_d)
                 
-                if right_mean_d < self.DETECTION_MIN_D:
+                print(f"right: {right_mean_d}")
+                # print(f"left: {left_mean_d}")
+                
+                # if right_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
                     # print(f"{right_d}")
                     
-                    return created_gesture_d["g_id"]
+                    # return created_gesture_d["g_id"]
             else:                                
                 # left hand only:
+                if len(right_d) == 0:
+                    # user currently doesnt use right hand, goto next sample
+                    continue
+                
                 for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
                     # compare
                     left_mean_d += abs(sample_d - cur_d)
                     
                 # take mean
-                left_mean_d / len(left_d)
+                left_mean_d /= len(left_d)
                 
-                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                print(f"left: {left_mean_d}")
+                
+                # if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
                     # print(f"{left_d}")
                     
-                    return created_gesture_d["g_id"]
+                    # return created_gesture_d["g_id"]
                 
                 
         return None
