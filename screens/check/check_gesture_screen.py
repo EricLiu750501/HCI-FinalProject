@@ -12,8 +12,6 @@ from model.yolox.yolox_onnx import YoloxONNX
 from screens.base_screen import BaseScreen
 from utils.CvDrawText import CvDrawText
 from utils.constants import WINDOW_SIZE, FONT
-from utils.CvDrawText import CvDrawText
-
 
 class CheckGestureScreen(BaseScreen):
     def __init__(self, callback):
