@@ -1,7 +1,7 @@
 import cv2
 import json
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import simpledialog, messagebox
 from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE, FONT_BOLD
 from utils.CvDrawText import CvDrawText
@@ -35,9 +35,76 @@ class EditScreen(BaseScreen):
             "text_input": (240, 240, 240),  # 淺灰色
         }
 
-        # 初始化 Tkinter root window
-        self.root = tk.Tk()
-        self.root.withdraw()  # 隱藏主窗口
+    def __tk_get_names(self, is_zh=True):
+        top = tk.Toplevel()
+        top.title("輸入術式名稱" if is_zh else "Input Jutsu Name")
+
+        user_input = tk.StringVar()
+        error_message = tk.StringVar()
+
+        def validate_input(char):
+            if is_zh:
+                if "\u4e00" <= char <= "\u9fa5":
+                    error_message.set("")
+                    return True
+                else:
+                    error_message.set("只允許輸入中文")
+                    return False
+            else:
+                if char.encode("UTF-8").isalpha() or char == " ":
+                    error_message.set("")
+                    return True
+                else:
+                    error_message.set("Only letters and spaces allowed")
+                    return False
+
+        validate_command = top.register(validate_input)
+
+        frame = tk.Frame(top)
+        frame.pack(pady=10)
+
+        label = tk.Label(
+            frame, text="請輸入中文名稱：" if is_zh else "Please input English name:"
+        )
+        label.pack(side=tk.LEFT)
+
+        error_label = tk.Label(frame, textvariable=error_message, fg="red")
+        error_label.pack(side=tk.RIGHT)
+
+        entry = tk.Entry(
+            frame,
+            textvariable=user_input,
+            width=50,
+            validate="key",
+            validatecommand=(validate_command, "%S"),
+        )
+        entry.pack(side=tk.LEFT)
+
+        result = [None]
+
+        def on_submit():
+            if not user_input.get():
+                error_message.set("輸入不得為空" if is_zh else "Input cannot be empty")
+                return
+            result[0] = user_input.get()
+            top.quit()
+
+        def on_cancel():
+            result[0] = None
+            top.quit()
+
+        submit_button = tk.Button(
+            top, text="確認" if is_zh else "Submit", command=on_submit
+        )
+        cancel_button = tk.Button(
+            top, text="取消" if is_zh else "Cancel", command=on_cancel
+        )
+        submit_button.pack(pady=10)
+        cancel_button.pack(pady=10)
+
+        top.mainloop()
+        top.destroy()
+        return result[0]
 
     def load_gestures(self):
         self.gestures = []
@@ -65,11 +132,6 @@ class EditScreen(BaseScreen):
                     i += 1
         except (FileNotFoundError, json.JSONDecodeError):
             print("Warning: created_gestures_d.json not found or invalid format.")
-
-    def __get_user_input(self, prompt):
-        """使用 Tkinter dialog 獲取使用者輸入"""
-        result = simpledialog.askstring("輸入", prompt)
-        return result if result else ""
 
     def __clear_content(self):
         """清空當前編輯的內容"""
@@ -100,6 +162,7 @@ class EditScreen(BaseScreen):
             if seq["name_en"] == self.jutsu_name_en:
                 tk.messagebox.showerror("錯誤", "英文名稱已存在，請選擇其他名稱")
                 return
+
         sequence_data = {
             "id": 6 + self.current_size + 1,
             "name_zh": self.jutsu_name_zh,
@@ -113,13 +176,8 @@ class EditScreen(BaseScreen):
         with open("setting/user_jutsu.json", "w", encoding="utf-8") as f:
             json.dump(user_sequences, f, ensure_ascii=False, indent=2)
 
-        # 儲存成功提示
         tk.messagebox.showinfo("成功", "序列已成功儲存")
-
-        # 儲存後清空當前編輯的內容
-        self.current_sequence = []
-        self.jutsu_name_zh = ""
-        self.jutsu_name_en = ""
+        self.__clear_content()
 
     def __load_existing_sequences(self):
         try:
@@ -140,16 +198,12 @@ class EditScreen(BaseScreen):
         for bx, by, bx2, by2, action in self.button_areas:
             if bx <= x <= bx2 and by <= y <= by2:
                 if action == "edit_zh":
-                    self.is_editing_zh = True
-                    self.is_editing_en = False
-                    name = self.__get_user_input("請輸入中文名稱")
+                    name = self.__tk_get_names(is_zh=True)
                     if name:
                         self.jutsu_name_zh = name
                     return
                 elif action == "edit_en":
-                    self.is_editing_zh = False
-                    self.is_editing_en = True
-                    name = self.__get_user_input("Please input English name")
+                    name = self.__tk_get_names(is_zh=False)
                     if name:
                         self.jutsu_name_en = name
                     return
@@ -167,7 +221,7 @@ class EditScreen(BaseScreen):
         for bx, by, bx2, by2, action in self.function_buttons:
             if bx <= x <= bx2 and by <= y <= by2:
                 if action == "back":
-                    self.__clear_content()  # 清空內容
+                    self.__clear_content()
                     self.callback("back")
                 elif action == "delete":
                     if self.current_sequence:
@@ -175,7 +229,7 @@ class EditScreen(BaseScreen):
                 elif action == "save":
                     self.__save_sequence()
                 elif action == "clear":
-                    self.__clear_content()  # 呼叫清空功能
+                    self.__clear_content()
                 break
 
     def draw(self, frame):
@@ -229,7 +283,7 @@ class EditScreen(BaseScreen):
         CvDrawText.puttext(
             frame, sequence_text, (50, 110), self.font_path, 36, (0, 0, 0)
         )
-        # Backspace按鈕
+
         backspace_x = 940
         backspace_y = 110
         backspace_width = 220
