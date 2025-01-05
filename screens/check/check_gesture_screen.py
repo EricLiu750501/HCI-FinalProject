@@ -100,7 +100,6 @@ class CheckGestureScreen(BaseScreen):
             # find every possible naruto gesture determined by yolo model
             for box, score, g_id in zip(boxes, scores, g_ids):
                 g_id = int(g_id) + 1  # add 1 because of labels.csv starts from none
-                detected_naruto = False
 
                 if score < self.DETECTION_CONFIDENCE:
                     # didn't detect naruto gesture in this box, go next possible box
