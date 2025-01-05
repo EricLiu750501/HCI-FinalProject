@@ -202,6 +202,7 @@ class AddGestureScreen(BaseScreen):
                 
                 if self.nod_success >= self.frame_count * 0.6: # 點頭持續 0.6秒表示確定
                     self.__record_gesture(hands_results)
+                    self.__image_storage(frame)
                     self.nod_success = 0 # reset
                     self.brow_y_positions = [0] * self.frame_count # reset
                     cv2.putText(frame, "CONFIRM!!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2) 
@@ -277,8 +278,9 @@ class AddGestureScreen(BaseScreen):
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
        
-
         print("Recoding Done!")
+
+
 
     def __tk_get_char(self):
         top = tk.Toplevel()
@@ -372,3 +374,19 @@ class AddGestureScreen(BaseScreen):
         print("User input:", is_add, result_zh, result_en)
         return (is_add, result_zh, result_en)  # 返回是否新增和用戶輸入的招式名稱
   
+    def __image_storage(self, frame):
+        # 定義資料夾
+        directory = 'assets/images/'
+        if not os.path.exists(directory):
+            print(f"{directory} 不存在")
+            return 0
+
+        # 查找所有名為 gesture_* 的檔案
+        gesture_files = [f for f in os.listdir(directory) if f.startswith('gesture_')]
+        
+        file_name = f'gesture_{len(gesture_files) + 1}.jpg'
+        file_path = os.path.join(directory, file_name)
+
+
+        cv2.imwrite(file_path, frame)
+        print(f"Image saved to {file_path}")
