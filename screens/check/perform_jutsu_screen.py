@@ -152,6 +152,7 @@ class PerformJutsuScreen(BaseScreen):
             result_id = self.__find_gesture_id_in_cam(image)
             
             if result_id == self.cur_jutsu["sequence"][self.cur_sequence_i]:
+                # switch to the next gesture before goto the next frame
                 self.cur_sequence_i += 1
         
         # add buttons
