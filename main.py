@@ -69,6 +69,7 @@ class GameManager:
             self.current_screen = self.check_gesture_screen
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "edit":
+            self.edit_screen.load_gestures()
             self.current_screen = self.edit_screen
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "gesture_screen_model":

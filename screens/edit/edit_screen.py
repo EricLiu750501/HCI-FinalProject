@@ -13,7 +13,8 @@ class EditScreen(BaseScreen):
         super().__init__(callback)
         self.font_path = FONT_BOLD
         self.current_sequence = []
-        self.gestures = self.__load_gestures()
+        self.gestures = []
+        self.load_gestures()
         self.current_size = len(self.__load_existing_sequences())
         self.button_areas = []
         self.gesture_buttons = []
@@ -38,15 +39,15 @@ class EditScreen(BaseScreen):
         self.root = tk.Tk()
         self.root.withdraw()  # 隱藏主窗口
 
-    def __load_gestures(self):
-        gestures = []
+    def load_gestures(self):
+        self.gestures = []
         # 讀取 labels.csv
         with open("setting/labels.csv", "r", encoding="utf-8") as file:
             reader = csv.reader(file)
             i = 1
             for row in reader:
                 if row[1] != "無":
-                    gestures.append({"en": row[0], "zh": row[1], "id": i})
+                    self.gestures.append({"en": row[0], "zh": row[1], "id": i})
                     i += 1
 
         # 讀取 created_gestures_d.json
@@ -54,7 +55,7 @@ class EditScreen(BaseScreen):
             with open("setting/created_gestures_d.json", "r", encoding="utf-8") as file:
                 created_gestures = json.load(file)
                 for gesture in created_gestures:
-                    gestures.append(
+                    self.gestures.append(
                         {
                             "en": gesture.get("g_name_en", "Unknown"),
                             "zh": gesture.get("g_name_zh", "未知"),
@@ -64,8 +65,6 @@ class EditScreen(BaseScreen):
                     i += 1
         except (FileNotFoundError, json.JSONDecodeError):
             print("Warning: created_gestures_d.json not found or invalid format.")
-
-        return gestures
 
     def __get_user_input(self, prompt):
         """使用 Tkinter dialog 獲取使用者輸入"""
