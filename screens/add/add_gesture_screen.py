@@ -110,13 +110,9 @@ class AddGestureScreen(BaseScreen):
 
         image = self.__face_tracking()
 
-       
+        image = cv2.resize(image, (640, 480))
+        frame[50:50 + 480, 50:50 + 640] = image
             
-
-
-
-        image = cv2.resize(image, (800, 600))
-        frame[50:650, 50:850] = image
         return frame
     
 
