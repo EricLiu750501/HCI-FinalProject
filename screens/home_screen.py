@@ -13,7 +13,7 @@ class HomeScreen(BaseScreen):
         self.font_path = FONT
         # 中文按鈕標題
         self.button_titles = ["新增手勢", "檢查手勢", "編輯", "練習"]
-        
+
         # create button areas
         self.button_areas = []
 
@@ -29,7 +29,7 @@ class HomeScreen(BaseScreen):
             (100, 100, 100),
             2,
         )
-        
+
         # draw top bar
         top_side_bar_height = 200
         cv2.rectangle(
@@ -64,12 +64,12 @@ class HomeScreen(BaseScreen):
                 hover=hover,
             )
             self.button_areas.append((x, y, x + button_width, y + button_height))
-            
+
         # Calculate starting x position for dev buttons
         total_width = button_width * len(DEV_BUTTONS) + gap * (len(DEV_BUTTONS) - 1)
         start_x = (WINDOW_SIZE[0] - total_width) // 2
         y = 100
-        
+
         # Draw develope areas buttons
         for i, text in enumerate(DEV_BUTTONS):
             x = start_x + i * (button_width + gap)
@@ -98,7 +98,7 @@ class HomeScreen(BaseScreen):
         )
         self.button_areas.append(
             (exit_x, exit_y, exit_x + button_width, exit_y + button_height // 2)
-        )        
+        )
 
     def handle_click(self, x, y):
         for i, (x1, y1, x2, y2) in enumerate(self.button_areas):
