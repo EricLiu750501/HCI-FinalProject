@@ -10,6 +10,7 @@ from model.yolox.yolox_onnx import YoloxONNX
 
 # custom packages
 from screens.base_screen import BaseScreen
+# from screens.check.check_gesture_screen import CheckGestureScreen
 from utils.CvDrawText import CvDrawText
 from utils.constants import WINDOW_SIZE, FONT
 
@@ -100,6 +101,16 @@ class PerformJutsuScreen(BaseScreen):
                 })
                 
     def draw(self, frame):
+        if self.cur_sequence_i >= len(self.cur_jutsu["sequence"]):
+            # congrats! all gestures are performed
+            print("BANG!!!!!")
+            
+            # free openCV cam for next usage
+            self.cap.release()
+            self.cap = None
+            
+            self.callback("back")
+            
         # load BG
         frame[:] = (150, 150, 150)  # white BG, will change later on
         
@@ -137,6 +148,11 @@ class PerformJutsuScreen(BaseScreen):
             
             # resize the cam frame to fit the frame
             frame[70 : 70 + 480, 10 : 10 + 640] = cv2.resize(image, (640, 480))
+            
+            result_id = self.__find_gesture_id_in_cam(image)
+            
+            if result_id == self.cur_jutsu["sequence"][self.cur_sequence_i]:
+                self.cur_sequence_i += 1
         
         # add buttons
         self.__draw_buttons(frame)
@@ -243,3 +259,154 @@ class PerformJutsuScreen(BaseScreen):
         self.button_areas.append(
             (back_x, back_y, back_x + btn_width, back_y + btn_height)
         )
+        
+    # this private method is to try find a gesture id that is detected by what
+    # ever ways, if didnt detect any, it returns none
+    def __find_gesture_id_in_cam(self, image):
+        # start from yolo model
+        boxes, scores, g_ids = self.yolox.inference(
+            image
+        )
+
+        # find every possible naruto gesture determined by yolo model
+        for box, score, g_id in zip(boxes, scores, g_ids):
+            g_id = int(g_id) + 1  # add 1 because of labels.csv starts from none
+
+            if score < self.DETECTION_CONFIDENCE:
+                # didn't detect naruto gesture in this box, go next possible box
+                continue
+            else:
+                # find a gesture!
+                return g_id
+            
+        # oh no.. we didnt find the g_id in yolo model
+        # it's fine, find it in created gestures
+        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = self.hands.process(rgb_image)
+
+        if results.multi_hand_landmarks and results.multi_handedness:
+            right_hand_raw = []
+            left_hand_raw = []
+            
+            for hand_landmarks, handedness in zip(
+                results.multi_hand_landmarks, results.multi_handedness
+            ):
+                # for each hand
+                
+                # save raw points for each hand
+                landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
+                hand_label = handedness.classification[0].label  # "Left" or "Right"
+                
+                if hand_label == "Right":
+                    right_hand_raw = landmarks
+                elif hand_label == "Left":
+                    left_hand_raw = landmarks
+                    
+            [right_d, left_d] = self.__get_current_gesture_d(right_hand_raw, left_hand_raw)
+            
+            gesture_id = self.__check_current_gesture(right_d, left_d)
+
+            if gesture_id != None:
+                # find a gesture!
+                return gesture_id
+            
+        # unfortunately, no gesture found
+        return None
+            
+    # literally the same function in check gesture screen, but I'm lazy to deal with python inheriting
+    def __get_current_gesture_d(self, right_hand_raw, left_hand_raw):
+        # Goal is to get all lm's distance from (ID = 0)'s lm (the palm)
+        # from MediaPipe the lm for palm is the first point in our raw data
+        
+        # Right Hand:
+        distance_right = []
+        if right_hand_raw != []:
+            base_point_right = np.array(right_hand_raw[0])
+            
+            for i, point in enumerate(right_hand_raw):
+                if i != 0:
+                    distance_right.append(np.linalg.norm(np.array(point) - base_point_right))
+                
+        # Left Hand:
+        distance_left = []
+        if left_hand_raw != []:
+            base_point_left = np.array(left_hand_raw[0])
+            
+            for i, point in enumerate(left_hand_raw):
+                if i != 0:
+                    distance_left.append(np.linalg.norm(np.array(point) - base_point_left))
+        
+        
+        return [distance_right, distance_left]
+    
+    def __check_current_gesture(self, right_d, left_d):
+        if len(right_d) == 0 and len(left_d) == 0:
+            return None
+            
+        for created_gesture_d in self.created_gestures_d:
+            # for each created gesture
+            right_mean_d = 0
+            left_mean_d = 0
+            
+            if created_gesture_d["right_d"] != [] and created_gesture_d["left_d"] != []:
+                # Both hands comparation
+                # right hand part:
+                if len(right_d) == 0:
+                    # user currently doesnt use right hand, goto next sample
+                    continue
+                
+                for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
+                    # compare
+                    right_mean_d += abs(sample_d - cur_d)
+                    
+                # left hand part:
+                if len(left_d) == 0:
+                    # user currently doesnt use left hand, goto next sample
+                    continue
+                
+                for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
+                    # compare
+                    left_mean_d += abs(sample_d - cur_d)
+                    
+                # take mean
+                right_mean_d /= len(right_d)
+                left_mean_d /= len(left_d)
+                
+                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                    # congrats! we get the gesture
+                    return created_gesture_d["g_id"]
+            elif created_gesture_d["left_d"] == []:
+                # right hand only:
+                if len(right_d) == 0:
+                    # user currently doesnt use right hand, goto next sample
+                    continue
+                
+                for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
+                    # compare
+                    right_mean_d += abs(sample_d - cur_d)
+                    
+                
+                # take mean
+                right_mean_d /= len(right_d)
+                
+                if right_mean_d < self.DETECTION_MIN_D:
+                    # congrats! we get the gesture
+                    return created_gesture_d["g_id"]
+            else:                                
+                # left hand only:
+                if len(left_d) == 0:
+                    # user currently doesnt use right hand, goto next sample
+                    continue
+                
+                for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
+                    # compare
+                    left_mean_d += abs(sample_d - cur_d)
+                    
+                # take mean
+                left_mean_d /= len(left_d)
+                
+                if left_mean_d < self.DETECTION_MIN_D:
+                    # congrats! we get the gesture
+                    return created_gesture_d["g_id"]
+                
+        return None
