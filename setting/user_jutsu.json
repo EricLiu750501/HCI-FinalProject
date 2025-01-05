@@ -1,20 +1,19 @@
 [
   {
     "id": 7,
-    "name_zh": "測試",
-    "name_en": "test",
+    "name_zh": "無量空處",
+    "name_en": "BuLiuoKuSho",
     "sequence": [
-      1
+      13
     ]
   },
   {
     "id": 8,
-    "name_zh": "哈哈哈",
-    "name_en": "hahaha",
+    "name_zh": "可以",
+    "name_en": "can take photo",
     "sequence": [
       14,
-      14,
-      14
+      15
     ]
   }
 ]
