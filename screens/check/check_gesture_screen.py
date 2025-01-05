@@ -348,7 +348,7 @@ class CheckGestureScreen(BaseScreen):
                 
                 # print(f"left: {left_mean_d}")
                 
-                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+                if left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
                     return created_gesture_d["g_id"]
                 
