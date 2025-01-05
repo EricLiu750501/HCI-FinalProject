@@ -122,6 +122,21 @@ class PerformJutsuScreen(BaseScreen):
         cv2.line(frame, (700, 0), (700, WINDOW_SIZE[1]), (200, 200, 200), 2)
         
         # add cam image to the left
+        # reload cap if needed
+        if self.cap == None:
+            self.cap = cv2.VideoCapture(0)  # Open default camera
+            if not self.cap.isOpened():
+                print("Cannot open camera, please check the device.")
+                self.cap = None
+        
+        # start showing the cam img
+        ret, image = self.cap.read()
+        
+        if ret:
+            image = cv2.flip(image, 1)
+            
+            # resize the cam frame to fit the frame
+            frame[70 : 70 + 480, 10 : 10 + 640] = cv2.resize(image, (640, 480))
         
         # add buttons
         self.__draw_buttons(frame)
@@ -129,6 +144,10 @@ class PerformJutsuScreen(BaseScreen):
     def handle_click(self, x, y):
         for x1, y1, x2, y2 in self.button_areas:
             if x1 <= x <= x2 and y1 <= y <= y2:
+                # free openCV cam for next usage
+                self.cap.release()
+                self.cap = None
+                
                 self.callback("back")
                 break
     
@@ -179,13 +198,22 @@ class PerformJutsuScreen(BaseScreen):
             start_x += blank
             
     def __draw_hint_image(self, frame):
+        # draw title
+        CvDrawText.puttext(
+            frame,
+            'Hint!',
+            (850, 50),
+            self.font_path, 20, (0, 0, 0)
+        )
+        
+        # draw image
         gesture_img_path = f"assets/images/gesture_{self.cur_jutsu['sequence'][self.cur_sequence_i]}.jpg"
         
         if os.path.exists(gesture_img_path):
             gesture_img = cv2.imread(gesture_img_path)
             if gesture_img is not None:
-                gesture_img = cv2.resize(gesture_img, (500, 500))
-                frame[100:100 + 500, 750:750 + 500] = gesture_img
+                gesture_img = cv2.resize(gesture_img, (530, 398))
+                frame[100:100 + 398, 750:750 + 530] = gesture_img
         
     def __draw_buttons(self, frame):
         # init some button attributes
