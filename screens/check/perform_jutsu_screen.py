@@ -23,6 +23,7 @@ class PerformJutsuScreen(BaseScreen):
         self.DETECTION_MIN_D = 0.05  # for added gestures
         self.Hand_Detection_Confidence = 0.1
         self.Hand_Tracking_Confidence = 0.1
+        self.PROGRESS_DURATION = 2 # how many second to perform a gesture
         
         # Load labels
         with open("setting/labels.csv", encoding="utf8") as f:
@@ -70,6 +71,9 @@ class PerformJutsuScreen(BaseScreen):
         self.cur_jutsu = None
         self.cur_sequence_i = None
         
+        self.progressing = False
+        self.start_time = 0
+        
     # GM gonna call this public method everytime switch to this screen
     def set_jutsu(self, jutsu):
         self.cur_jutsu = jutsu
@@ -88,8 +92,9 @@ class PerformJutsuScreen(BaseScreen):
             self.created_gestures_d = json.load(created_gestures_d)
         
         # merge naruto labels with created labels
-        for i in range(1, self.created_gestures_d[len(self.created_gestures_d) - 1]["g_id"] + 1):
-            if i <= 12:
+        num_gestures = len(self.naruto_labels) - 1 + len(self.created_gestures_d)
+        for i in range(1, num_gestures + 1):
+            if i <= len(self.naruto_labels) - 1:
                 self.gesture_labels.append({
                     "g_name_zh": self.naruto_labels[i][1],
                     "g_name_en": self.naruto_labels[i][0]
@@ -103,13 +108,12 @@ class PerformJutsuScreen(BaseScreen):
     def draw(self, frame):
         if self.cur_sequence_i >= len(self.cur_jutsu["sequence"]):
             # congrats! all gestures are performed
-            print("BANG!!!!!")
-            
             # free openCV cam for next usage
             self.cap.release()
             self.cap = None
             
-            self.callback("back")
+            self.callback("show_screen", self.cur_jutsu["id"])
+            return
             
         # load BG
         frame[:] = (150, 150, 150)  # white BG, will change later on
@@ -152,8 +156,29 @@ class PerformJutsuScreen(BaseScreen):
             result_id = self.__find_gesture_id_in_cam(image)
             
             if result_id == self.cur_jutsu["sequence"][self.cur_sequence_i]:
-                # switch to the next gesture before goto the next frame
-                self.cur_sequence_i += 1
+                if not self.progressing:
+                    # start the progress of gesture performing, count {self.PROGRESS_DURATION} seconds
+                    self.start_time = time.time()
+                    
+                    self.progressing = True
+                else:
+                    # count down
+                    elapsed_time = time.time() - self.start_time
+                    # Clamp progress to 100
+                    progress = min(100, int((elapsed_time / self.PROGRESS_DURATION) * 100))
+                    
+                    # draw the prograss bar under the hint image
+                    self.__draw_progress_bar(frame, progress)
+                    
+                    if progress == 100:
+                        # goto the next gesture
+                        self.cur_sequence_i += 1
+                        
+                        self.progressing = False
+            else:
+                # reset the progress
+                self.progressing = False
+                    
         
         # add buttons
         self.__draw_buttons(frame)
@@ -165,14 +190,14 @@ class PerformJutsuScreen(BaseScreen):
                 self.cap.release()
                 self.cap = None
                 
-                self.callback("back")
+                self.callback("practice_screen")
                 break
     
     # private methods here ---------------------------------------------
     
     def __draw_sequece(self, frame):
         start_x = 10
-        start_y = 80
+        start_y = WINDOW_SIZE[1] - 100
         
         blank = 50
         # big_blank = 50
@@ -231,6 +256,28 @@ class PerformJutsuScreen(BaseScreen):
             if gesture_img is not None:
                 gesture_img = cv2.resize(gesture_img, (530, 398))
                 frame[100:100 + 398, 750:750 + 530] = gesture_img
+          
+    # draw a prograss bar with 0 ~ 100%    
+    def __draw_progress_bar(self, frame, progress):       
+        x = 750
+        y = 550
+        
+        width = 200
+        height = 50
+        
+        color_bg = (255, 255, 255)
+        color_fg = (0, 0, 255)
+        
+        thickness = 2
+        
+        # Draw the outline of the progress bar
+        cv2.rectangle(frame, (x, y), (x + width, y + height), color_bg, thickness)
+
+        # Calculate the width of the filled portion
+        fill_width = int((progress / 100) * width)
+
+        # Draw the filled portion
+        cv2.rectangle(frame, (x, y), (x + fill_width, y + height), color_fg, -1)
         
     def __draw_buttons(self, frame):
         # init some button attributes
@@ -238,7 +285,7 @@ class PerformJutsuScreen(BaseScreen):
         btn_height = 50
 
         # draw back button
-        back_x, back_y = 50, WINDOW_SIZE[1] - 100
+        back_x, back_y = WINDOW_SIZE[0] - 300, WINDOW_SIZE[1] - 100
 
         cv2.rectangle(
             frame,
