@@ -13,6 +13,7 @@ from screens.check.check_gesture_screen import CheckGestureScreen
 from screens.edit.edit_screen import EditScreen
 from screens.show_screen import ShowScreen
 from screens.input_box_screen import InputBoxScreen
+from screens.remove.remove_file import RemoveFileScreen
 
 from utils.constants import WINDOW_SIZE
 
@@ -45,7 +46,8 @@ class GameManager:
         self.practice_screen = PracticeScreen(self._handle_button_click)
         self.show_screen = ShowScreen(self._handle_button_click)
         self.input_box_screen_model = InputBoxScreen(self._handle_button_click)
-
+        self.rm_screen = RemoveFileScreen(self._handle_button_click)
+        
         self.current_screen = self.home_screen
 
         # State
@@ -92,6 +94,9 @@ class GameManager:
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "input_box_screen_model":
             self.current_screen = self.input_box_screen_model
+            pygame.mixer.Sound.play(self.click_sound)
+        elif action == "remove_file":
+            self.current_screen = self.rm_screen
             pygame.mixer.Sound.play(self.click_sound)
 
     def run(self):

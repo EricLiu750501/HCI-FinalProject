@@ -116,7 +116,10 @@ class HomeScreen(BaseScreen):
                     elif i == 3:
                         self.callback("practice_screen")
                     elif i == 4:
-                        self.callback("gesture_screen_model")
+                        self.callback("remove_file")
                     elif i == 5:
+                        self.callback("gesture_screen_model")
+                    elif i == 6:
                         self.callback("input_box_screen_model")
+                    
                 break

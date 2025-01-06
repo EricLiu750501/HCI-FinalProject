@@ -6,6 +6,7 @@ def reset_created_gestures():
     with open(file_path, 'w') as file:
         json.dump([], file)
     print(f'Reset {file_path} to an empty list.')
+    reset_created_jutsu() # 重置手勢時，也重置忍術
 
 
 def reset_created_jutsu():
