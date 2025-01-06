@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "name_zh": "豪火球之術",
+    "name_en": "Fireball",
+    "sequence": [6, 8, 9, 12, 7, 3]
+  },
+  {
+    "id": 2,
+    "name_zh": "龍火之術",
+    "name_en": "Dragon Fire",
+    "sequence": [6, 5, 4, 3]
+  },
+  {
+    "id": 3,
+    "name_zh": "分身之術",
+    "name_en": "Clone",
+    "sequence": [8, 6, 3]
+  },
+  {
+    "id": 4,
+    "name_zh": "鳳仙火",
+    "name_en": "Phoenix Flower",
+    "sequence": [1, 3, 11, 2, 4, 3]
+  },
+  {
+    "id": 5,
+    "name_zh": "通靈之術",
+    "name_en": "Summoning",
+    "sequence": [11, 12, 10, 9, 8]
+  },
+  {
+    "id": 6,
+    "name_zh": "水龍彈之術",
+    "name_en": "Water Dragon",
+    "sequence": [
+      2, 9, 4, 1, 12, 10, 2, 7, 10, 1, 3, 11, 3, 6, 2, 8, 6, 12, 8, 1, 9, 10, 5,
+      10, 2, 7, 8, 3, 6, 1, 9, 4, 12, 5, 8, 1, 2, 9, 10, 1, 12, 10
+    ]
+  }
+]

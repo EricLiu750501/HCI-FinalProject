@@ -18,9 +18,10 @@ from utils.constants import WINDOW_SIZE
 
 import tkinter as tk
 
+
 class GameManager:
     def __init__(self):
-        self.root = tk.Tk() 
+        self.root = tk.Tk()
         self.root.withdraw()
         pygame.mixer.init()
         self.click_sound = pygame.mixer.Sound("assets/sounds/click.wav")
@@ -44,7 +45,7 @@ class GameManager:
         self.practice_screen = PracticeScreen(self._handle_button_click)
         self.show_screen = ShowScreen(self._handle_button_click)
         self.input_box_screen_model = InputBoxScreen(self._handle_button_click)
-        
+
         self.current_screen = self.home_screen
 
         # State
@@ -68,12 +69,14 @@ class GameManager:
             self.current_screen = self.check_gesture_screen
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "edit":
+            self.edit_screen.load_gestures()
             self.current_screen = self.edit_screen
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "gesture_screen_model":
             self.current_screen = self.gesture_screen_model
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "practice_screen":
+            self.practice_screen.load_resources()
             self.current_screen = self.practice_screen
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "back":

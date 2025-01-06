@@ -5,53 +5,39 @@ import copy
 from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE, FONT
 from model.yolox.yolox_onnx import YoloxONNX
-import csv
 import random
-
+import json
 import speech_recognition as sr
 from threading import Thread
 from utils.CvDrawText import CvDrawText
-import json
 
 
 class PracticeScreen(BaseScreen):
     def __init__(self, callback):
         super().__init__(callback)
+        self.background = None
+        self.jutsu_list = []
+        self.tolerance_terms = {}
+        self.load_resources()  # 初始化時載入一次
 
+        # 載入背景圖片
+        self.background = cv2.imread(
+            "assets/images/practice_background.png", cv2.IMREAD_COLOR
+        )
+        if self.background is None:
+            raise FileNotFoundError("無法載入背景圖片")
+        self.background = cv2.resize(self.background, WINDOW_SIZE)
+
+        # 載入麥克風圖標
         try:
-            # 載入背景圖片
-            self.background = cv2.imread(
-                "assets/images/practice_background.png", cv2.IMREAD_COLOR
-            )
-            if self.background is None:
-                raise FileNotFoundError("無法載入背景圖片")
-            self.background = cv2.resize(self.background, WINDOW_SIZE)
-
-            # 載入忍術列表
-            self.jutsu_list = []
-            with open("setting/jutsu.csv", encoding="utf-8-sig") as f:
-                reader = csv.reader(f)
-                for i, row in enumerate(reader):
-                    chinese_name = row[0].strip()  # 中文名稱
-                    english_name = row[1].strip().lower()  # 英文名稱（轉小寫方便匹配）
-                    self.jutsu_list.append(
-                        (chinese_name, english_name, i)
-                    )  # 中文、英文、索引
-
-            # 載入容忍詞表
-            with open("setting/tolerance_terms.json", encoding="utf8") as f:
-                self.tolerance_terms = json.load(f)
-
-            # 載入麥克風圖標
             self.mic_icon = cv2.imread(
                 "assets/icons/icon_mic.png", cv2.IMREAD_UNCHANGED
             )
             if self.mic_icon is None:
                 raise FileNotFoundError("無法載入麥克風圖標")
             self.mic_icon = cv2.resize(self.mic_icon, (200, 200))
-
         except Exception as e:
-            print(f"初始化錯誤: {e}")
+            print(f"初始化麥克風圖標錯誤: {e}")
 
         # 語音識別初始化
         self.recognizer = sr.Recognizer()
@@ -75,7 +61,8 @@ class PracticeScreen(BaseScreen):
             with self.microphone as source:
                 self.recognizer.adjust_for_ambient_noise(source)
 
-                audio = self.recognizer.listen(source, timeout=1)
+                # listen會偵測音量並偵測聲音大的片段回傳
+                audio = self.recognizer.listen(source, timeout=None)
                 text = self.recognizer.recognize_google(audio, language="zh-TW")
 
                 # 保存使用者說的話
@@ -85,37 +72,25 @@ class PracticeScreen(BaseScreen):
                 print(f"使用者輸入: {text}")
 
                 # 驗證是否匹配忍術（包含容忍詞表）
-                for jutsu_cn, jutsu_en, jutsu_index in self.jutsu_list:
-                    # 忍術名稱正規化（移除空格，轉小寫）
-                    normalized_jutsu_cn = jutsu_cn.replace(" ", "").lower()
-                    normalized_jutsu_en = jutsu_en.lower()
+                for jutsu in self.jutsu_list:
+                    normalized_jutsu_cn = jutsu["normalized_chinese_name"]
+                    normalized_jutsu_en = jutsu["english_name"]
 
-                    # 取得容忍詞表的可能詞彙
                     possible_terms = self.tolerance_terms.get(
-                        jutsu_cn, [jutsu_cn]
-                    )  # 預設為 [jutsu_cn]
-                    normalized_possible_terms = [
-                        term.replace(" ", "").lower() for term in possible_terms
-                    ]
+                        normalized_jutsu_cn, [normalized_jutsu_cn]
+                    )
 
-                    # 匹配條件
                     if (
-                        normalized_jutsu_cn in normalized_text  # 中文忍術名稱
-                        or normalized_jutsu_en in normalized_text  # 英文忍術名稱
-                        or any(
-                            term in normalized_text
-                            for term in normalized_possible_terms
-                        )  # 容忍詞表
+                        normalized_jutsu_cn in normalized_text
+                        or normalized_jutsu_en in normalized_text
+                        or any(term in normalized_text for term in possible_terms)
                     ):
-                        self.detected_jutsu_name = jutsu_cn
-                        # 停止錄音並跳轉到 show_screen
+                        self.detected_jutsu_name = jutsu["chinese_name"]
                         self.is_recording = False
                         self.is_listening = False
-                        self.callback("show_screen", jutsu_index)
-                        # self.detection_status = True # (偵錯用，會直接跳到另一個螢幕不會顯示)
+                        self.callback("show_screen", jutsu["index"])
                         break
 
-                # 如果沒有偵測到忍術，仍然顯示使用者說的話
                 self.detection_timer = self.DETECTION_DISPLAY_TIME
 
     def draw(self, frame):
@@ -126,7 +101,10 @@ class PracticeScreen(BaseScreen):
 
         # 右側顯示忍術列表
         y_offset = 100
-        for jutsu_ch, jutsu_en, i in self.jutsu_list:
+        for jutsu in self.jutsu_list:
+            jutsu_ch = jutsu["chinese_name"]
+            jutsu_en = jutsu["english_name"]
+            i = jutsu["index"]
             CvDrawText.puttext(
                 temp_frame,
                 f"{jutsu_ch} ({jutsu_en})",
@@ -240,3 +218,34 @@ class PracticeScreen(BaseScreen):
                         self.listen_thread.join(timeout=1)
                     self.callback("back")
                 break
+
+    def load_resources(self):
+        # 載入忍術列表
+        self.jutsu_list = []
+        with open("setting/default_jutsu.json", encoding="utf-8") as f:
+            default_jutsu = json.load(f)
+        with open("setting/user_jutsu.json", encoding="utf-8") as f:
+            user_jutsu = json.load(f)
+        combined_jutsu = default_jutsu + user_jutsu
+        for jutsu in combined_jutsu:
+            chinese_name = jutsu["name_zh"].strip()
+            english_name = jutsu["name_en"].strip().lower()
+            normalized_chinese_name = chinese_name.replace(" ", "").lower()
+            self.jutsu_list.append(
+                {
+                    "chinese_name": chinese_name,
+                    "english_name": english_name,
+                    "normalized_chinese_name": normalized_chinese_name,
+                    "index": int(jutsu["id"]),
+                }
+            )
+
+        # 載入容忍詞表
+        with open("setting/tolerance_terms.json", encoding="utf8") as f:
+            raw_tolerance_terms = json.load(f)
+        self.tolerance_terms = {
+            key.replace(" ", "").lower(): [
+                term.replace(" ", "").lower() for term in terms
+            ]
+            for key, terms in raw_tolerance_terms.items()
+        }
