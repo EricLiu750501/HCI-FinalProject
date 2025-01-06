@@ -115,8 +115,16 @@ class PerformJutsuScreen(BaseScreen):
             self.callback("show_screen", self.cur_jutsu["id"])
             return
             
-        # load BG
-        frame[:] = (150, 150, 150)  # white BG, will change later on
+        # 載入背景圖片
+        background_image = cv2.imread("assets/images/JutsuPerformBG.png")
+        if background_image is not None:
+            # 確保背景圖片大小符合視窗大小
+            background_image = cv2.resize(
+                background_image, (frame.shape[1], frame.shape[0])
+            )
+            frame[:] = background_image
+        else:
+            frame[:] = (150, 150, 150)  # gray BG
         
         if self.cur_jutsu == None:
             # not yet loaded the j_id user wants to perform
