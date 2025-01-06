@@ -23,7 +23,7 @@ class PerformJutsuScreen(BaseScreen):
         self.DETECTION_MIN_D = 0.05  # for added gestures
         self.Hand_Detection_Confidence = 0.1
         self.Hand_Tracking_Confidence = 0.1
-        self.PROGRESS_DURATION = 2 # how many second to perform a gesture
+        self.PROGRESS_DURATION = 0.8  # how many second to perform a gesture
         
         # Load labels
         with open("setting/labels.csv", encoding="utf8") as f:
