@@ -110,13 +110,9 @@ class AddGestureScreen(BaseScreen):
 
         image = self.__face_tracking()
 
-       
+        image = cv2.resize(image, (640, 480))
+        frame[100:100 + 480, 100:100 + 640] = image
             
-
-
-
-        image = cv2.resize(image, (800, 600))
-        frame[50:650, 50:850] = image
         return frame
     
 
@@ -125,11 +121,18 @@ class AddGestureScreen(BaseScreen):
     def handle_click(self, x, y):
         for x1, y1, x2, y2 in self.button_areas:
             if x1 <= x <= x2 and y1 <= y <= y2:
+                self.cap.release()
+                self.cap = None
                 self.callback("back")
                 break
 
 
     def __face_tracking(self):
+        if self.cap == None:
+            self.cap = cv2.VideoCapture(0)  # Open default camera
+            if not self.cap.isOpened():
+                print("Cannot open camera, please check the device.")
+                self.cap = None
             
         success, frame = self.cap.read()
 
@@ -199,7 +202,7 @@ class AddGestureScreen(BaseScreen):
 
                 
                 if self.nod_success >= self.frame_count * 0.6: # 點頭持續 0.6秒表示確定
-                    self.__record_gesture(hands_results)
+                    self.__record_gesture(hands_results, frame)
                     self.nod_success = 0 # reset
                     self.brow_y_positions = [0] * self.frame_count # reset
                     cv2.putText(frame, "CONFIRM!!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2) 
@@ -214,7 +217,7 @@ class AddGestureScreen(BaseScreen):
 
 
 
-    def __record_gesture(self, hands_results):
+    def __record_gesture(self, hands_results, frame):
         print("Recoding ...")
         gesture_hand_points = {
                 'g_id' : 13,   # 前12個預設手勢是固定的，從13開始自定義
@@ -233,9 +236,9 @@ class AddGestureScreen(BaseScreen):
                 
                 array = [ [0.0,0.0,0.0] for i in range(20)]
                 for i in range(1, len(landmarks)):
-                        array[i-1][0] = landmarks[i].x - landmarks[0].x
-                        array[i-1][1] = landmarks[i].y - landmarks[0].y
-                        array[i-1][2] = landmarks[i].z - landmarks[0].z
+                    cur_vector = [landmarks[i].x, landmarks[i].y, landmarks[i].z]
+                    base_vector = [landmarks[0].x, landmarks[0].y, landmarks[0].z]
+                    array[i-1] = np.linalg.norm(np.array(cur_vector) - np.array(base_vector))
                 
                 if hand_type == "Left" :
                     gesture_hand_points['left_d'] = array
@@ -249,7 +252,11 @@ class AddGestureScreen(BaseScreen):
 
         if not is_add:
             return 0
+        
+        # 儲存圖片
+        self.__image_storage(frame)
 
+        # 儲存 json
         print("招式名稱:", name_zh)
         gesture_hand_points['g_name_zh'] = name_zh
         gesture_hand_points['g_name_en'] = name_en
@@ -275,8 +282,11 @@ class AddGestureScreen(BaseScreen):
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
        
-
         print("Recoding Done!")
+
+        
+
+
 
     def __tk_get_char(self):
         top = tk.Toplevel()
@@ -370,3 +380,19 @@ class AddGestureScreen(BaseScreen):
         print("User input:", is_add, result_zh, result_en)
         return (is_add, result_zh, result_en)  # 返回是否新增和用戶輸入的招式名稱
   
+    def __image_storage(self, frame):
+        # 定義資料夾
+        directory = 'assets/images/'
+        if not os.path.exists(directory):
+            print(f"{directory} 不存在")
+            return 0
+
+        # 查找所有名為 gesture_* 的檔案
+        gesture_files = [f for f in os.listdir(directory) if f.startswith('gesture_')]
+        
+        file_name = f'gesture_{len(gesture_files) + 1}.jpg'
+        file_path = os.path.join(directory, file_name)
+
+
+        cv2.imwrite(file_path, frame)
+        print(f"Image saved to {file_path}")
