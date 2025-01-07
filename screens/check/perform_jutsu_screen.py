@@ -112,7 +112,7 @@ class PerformJutsuScreen(BaseScreen):
             self.cap.release()
             self.cap = None
             
-            self.callback("show_screen", self.cur_jutsu["id"])
+            self.callback("show_screen", self.cur_jutsu)
             return
             
         # load BG
@@ -171,6 +171,15 @@ class PerformJutsuScreen(BaseScreen):
                     self.__draw_progress_bar(frame, progress)
                     
                     if progress == 100:
+                        # if performing a naruto gesture that is not saved in temp folder,
+                        # save it. BUT, if it was saved before, skip it
+                        if result_id <= 12:
+                            temp_img_path = f"assets/images/temp_naruto_gestures/gesture_{result_id}.jpg"
+        
+                            if not os.path.exists(temp_img_path):
+                                # save it
+                                cv2.imwrite(temp_img_path, image)
+                        
                         # goto the next gesture
                         self.cur_sequence_i += 1
                         

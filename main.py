@@ -12,7 +12,7 @@ from screens.add.add_gesture_screen import AddGestureScreen
 from screens.check.check_gesture_screen import CheckGestureScreen
 from screens.check.perform_jutsu_screen import PerformJutsuScreen
 from screens.edit.edit_screen import EditScreen
-from screens.show_screen import ShowScreen
+from screens.show.show_screen import ShowScreen
 from screens.input_box_screen import InputBoxScreen
 
 from utils.constants import WINDOW_SIZE
@@ -93,7 +93,7 @@ class GameManager:
             self.current_screen = self.perform_jutsu_screen
             self.current_screen.set_jutsu(data)
         elif action == "show_screen":
-            self.show_screen.set_jutsu_index(data)
+            self.show_screen.set_jutsu(data)
             self.current_screen = self.show_screen
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "input_box_screen_model":
