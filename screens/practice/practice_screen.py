@@ -173,7 +173,7 @@ class PracticeScreen(BaseScreen):
             CvDrawText.puttext(
                 temp_frame,
                 detection_text,
-                (50, 600),
+                (50, 150),
                 FONT_BOLD,
                 40,
                 text_color,
