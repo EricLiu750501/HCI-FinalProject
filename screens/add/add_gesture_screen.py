@@ -135,7 +135,7 @@ class AddGestureScreen(BaseScreen):
                 self.cap = None
             
         success, frame = self.cap.read()
-
+        
         if success:
             frame = cv2.flip(frame, 1)
             # 轉換 BGR 到 RGB（MediaPipe 需要 RGB 格式）
@@ -149,14 +149,7 @@ class AddGestureScreen(BaseScreen):
             rgb_frame.flags.writeable = True
             frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
 
-            # 繪製手 （必要）
-            if hands_results.multi_hand_landmarks:
-                for hand_landmarks in hands_results.multi_hand_landmarks:
-                    self.mp_drawing.draw_landmarks(
-                        frame, 
-                        hand_landmarks, 
-                        self.mp_hands.HAND_CONNECTIONS  # 繪製手部骨架連接
-                    )
+            
             # 繪製眉毛 （可不畫），加工數據(mean)
             if face_results.multi_face_landmarks:
                 for face_landmarks in face_results.multi_face_landmarks:
@@ -210,6 +203,14 @@ class AddGestureScreen(BaseScreen):
             
             
             self.frame_count_i = (self.frame_count_i + 1 ) % self.frame_count
+            # 繪製手 （必要）
+            if hands_results.multi_hand_landmarks:
+                for hand_landmarks in hands_results.multi_hand_landmarks:
+                    self.mp_drawing.draw_landmarks(
+                        frame, 
+                        hand_landmarks, 
+                        self.mp_hands.HAND_CONNECTIONS  # 繪製手部骨架連接
+                    )
 
 
         
@@ -254,6 +255,7 @@ class AddGestureScreen(BaseScreen):
             return 0
         
         # 儲存圖片
+        # self.have_to_storage_image = True
         self.__image_storage(frame)
 
         # 儲存 json
