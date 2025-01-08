@@ -20,22 +20,12 @@ class HomeScreen(BaseScreen):
     def draw(self, frame):
         # Draw main border for button area
         # draw left bar
-        right_panel_width = 200
+        right_panel_width = 230
         right_panel_x = WINDOW_SIZE[0] - right_panel_width
         cv2.rectangle(
             frame,
             (right_panel_x, 0),
             (WINDOW_SIZE[0], WINDOW_SIZE[1]),
-            (100, 100, 100),
-            2,
-        )
-
-        # draw top bar
-        top_side_bar_height = 200
-        cv2.rectangle(
-            frame,
-            (0, 0),
-            (right_panel_x, top_side_bar_height),
             (100, 100, 100),
             2,
         )
@@ -48,7 +38,7 @@ class HomeScreen(BaseScreen):
         # Calculate starting y position for main buttons
         total_height = button_height * len(BUTTONS) + gap * (len(BUTTONS) - 1)
         start_y = (WINDOW_SIZE[1] - total_height) // 2
-        x = WINDOW_SIZE[0] - button_width - 10
+        x = WINDOW_SIZE[0] - button_width - 30
 
         # Draw main buttons
         for i, text in enumerate(BUTTONS):
