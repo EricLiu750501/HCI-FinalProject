@@ -202,8 +202,10 @@ class PerformJutsuScreen(BaseScreen):
         blank = 50
         # big_blank = 50
         
-        for g_id in self.cur_jutsu["sequence"]:
-            if g_id == self.cur_jutsu["sequence"][self.cur_sequence_i]:
+        for i in range(0, len(self.cur_jutsu["sequence"])):
+            g_id = self.cur_jutsu["sequence"][i]
+            
+            if i == self.cur_sequence_i:
                 color = (255, 0, 0)
             else:
                 color = (0, 0, 0)
