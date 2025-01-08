@@ -4,6 +4,7 @@ from screens.base_screen import BaseScreen
 from utils.constants import *
 from utils.drawing import draw_button
 from utils.CvDrawText import CvDrawText
+from utils.rm_files import remove_gestures, remove_jutsu, remove_temp
 
 
 class HomeScreen(BaseScreen):
@@ -16,6 +17,11 @@ class HomeScreen(BaseScreen):
 
         # create button areas
         self.button_areas = []
+
+        # rm_files button settings
+        self.rm_button_titles = ["Reset Created Gestures", "Reset Created Jutsu", "Remove Temp Naruto Gestures"]
+        self.rm_button_functions = [remove_gestures, remove_jutsu, remove_temp]
+        self.rm_button_areas = []
 
     def draw(self, frame):
         # Draw main border for button area
@@ -100,6 +106,28 @@ class HomeScreen(BaseScreen):
             (exit_x, exit_y, exit_x + button_width, exit_y + button_height // 2)
         )
 
+
+
+        # Draw Remove File button
+        back_x, back_y = 150, 500
+        gap_y = 50
+        # Draw button2
+        for buttons_name in self.rm_button_titles:
+            cv2.rectangle(
+                frame, (back_x, back_y), (back_x + 300, back_y + 25), (0, 255, 255), -1
+            )
+            CvDrawText.puttext(
+                frame,
+                buttons_name,
+                (back_x + 30, back_y + 5),
+                self.font_path,
+                20,
+                (0,0,0),
+            )
+            self.rm_button_areas.append((back_x, back_y, back_x + 300, back_y + 25, buttons_name))
+            back_y += gap_y
+
+
     def handle_click(self, x, y):
         for i, (x1, y1, x2, y2) in enumerate(self.button_areas):
             if x1 <= x <= x2 and y1 <= y <= y2:
@@ -116,10 +144,15 @@ class HomeScreen(BaseScreen):
                     elif i == 3:
                         self.callback("practice_screen")
                     elif i == 4:
-                        self.callback("remove_file")
-                    elif i == 5:
                         self.callback("gesture_screen_model")
-                    elif i == 6:
+                    elif i == 5:
                         self.callback("input_box_screen_model")
                     
+                break
+        for x1, y1, x2, y2, action in self.rm_button_areas:
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                for button_name, button_function in zip(self.rm_button_titles, self.rm_button_functions):
+                    if action == button_name:
+                        button_function()
+                        break
                 break

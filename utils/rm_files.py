@@ -1,6 +1,9 @@
 import os
 import json
 
+import tkinter as tk
+from tkinter import messagebox
+
 def reset_created_gestures():
     file_path = 'setting/created_gestures_d.json'
     with open(file_path, 'w') as file:
@@ -52,6 +55,37 @@ def remove_all():
     reset_created_jutsu()
     remove_temp_naruto_gestures()
     remove_gesture_files()
+
+# def remove_gestures():
+#     remove_gesture_files()
+#     reset_created_gestures()
+#     reset_created_jutsu()
+
+# def remove_jutsu():
+#     reset_created_jutsu()
+
+# def remove_temp(): # 移除偷截圖的暫存檔
+#     remove_temp_naruto_gestures()
+
+def confirm_and_execute(action):
+    top = tk.Toplevel()
+    top.withdraw()  # 隱藏主視窗
+
+    if messagebox.askyesno("確認", "您確定要執行此操作嗎？"):
+        action()
+    else:
+        print("操作已取消")
+
+    top.destroy()
+
+def remove_gestures():
+    confirm_and_execute(lambda: (remove_gesture_files(), reset_created_gestures(), reset_created_jutsu()))
+
+def remove_jutsu():
+    confirm_and_execute(reset_created_jutsu)
+
+def remove_temp():  # 移除偷截圖的暫存檔
+    confirm_and_execute(remove_temp_naruto_gestures)
 
 # Run for just testing
 if __name__ == '__main__':
