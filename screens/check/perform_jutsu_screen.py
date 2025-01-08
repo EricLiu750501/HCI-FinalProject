@@ -200,7 +200,8 @@ class PerformJutsuScreen(BaseScreen):
         start_x = 10
         start_y = WINDOW_SIZE[1] - 150
         
-        blank = 50
+        blank_x = 100
+        blank_y = 50
         # big_blank = 50
         
         if len(self.cur_jutsu["sequence"]) > self.TOLERANCE_SEQ_LENGTH:
@@ -229,31 +230,35 @@ class PerformJutsuScreen(BaseScreen):
                     (start_x, start_y),
                     self.font_path, 40, color
                 )
+                
+                # for spacing for the first gesture
+                start_x += blank_x/2
+                continue
             else:
                 # draw an "→" + {gesture name}
                 # for →:
-                CvDrawText.puttext(
-                    frame,
-                    "→",
-                    (start_x, start_y),
-                    self.font_path, 40, color
-                )
+                # CvDrawText.puttext(
+                #     frame,
+                #     "→",
+                #     (start_x, start_y),
+                #     self.font_path, 40, color
+                # )
                 
-                start_x += blank
+                # start_x += blank
                 
                 # for {gesture name}
                 CvDrawText.puttext(
                     frame,
-                    self.gesture_labels[g_id]["g_name_zh"],
+                    f"→  {self.gesture_labels[g_id]['g_name_zh']}",
                     (start_x, start_y),
                     self.font_path, 40, color
                 )
             
             # for spacing
-            start_x += blank
+            start_x += blank_x
             
             if (i + 1) % 5 == 0:
-                start_y += blank
+                start_y += blank_y
                 start_x = 10
             
     def __draw_hint_image(self, frame):
