@@ -59,8 +59,8 @@ class HomeScreen(BaseScreen):
 
 
         # Draw exit button
-        exit_x = WINDOW_SIZE[0] - button_width - 10
-        exit_y = exit_y = WINDOW_SIZE[1] - button_height // 2
+        exit_x = WINDOW_SIZE[0] - button_width - 30
+        exit_y = exit_y = WINDOW_SIZE[1] - button_height // 2 - 30
         draw_button(
             frame,
             "Exit",
@@ -75,8 +75,8 @@ class HomeScreen(BaseScreen):
         )
 
         # Draw Setting File button
-        setting_x = 10
-        setting_y = WINDOW_SIZE[1] - button_height - 10
+        setting_x = 20
+        setting_y = WINDOW_SIZE[1] - button_height - 30
         draw_button(
             frame,
             "Setting",

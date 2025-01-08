@@ -13,7 +13,6 @@ from screens.check.check_gesture_screen import CheckGestureScreen
 from screens.check.perform_jutsu_screen import PerformJutsuScreen
 from screens.edit.edit_screen import EditScreen
 from screens.show.show_screen import ShowScreen
-from screens.input_box_screen import InputBoxScreen
 from screens.remove.remove_file import RemoveFileScreen
 
 from utils.constants import WINDOW_SIZE
