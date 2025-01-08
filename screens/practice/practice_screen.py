@@ -17,6 +17,7 @@ class PracticeScreen(BaseScreen):
         super().__init__(callback)
         self.background = None
         self.jutsu_list = []
+        self.combined_jutsu = None
         self.tolerance_terms = {}
         self.button_areas = []
         self.load_resources()  # 初始化時載入一次
@@ -92,8 +93,10 @@ class PracticeScreen(BaseScreen):
                         self.detected_jutsu_name = jutsu["chinese_name"]
                         self.is_recording = False
                         self.is_listening = False
-                        self.detection_status = True
-                        self.callback("show_screen", jutsu["index"])
+
+                        self.callback("jutsu_detected", self.combined_jutsu[jutsu["index"] - 1])
+                        # minus 1 because jutsu start with id = 1, but list elements start at 0
+
                         break
                 if self.detection_status == False:
                     self.detection_timer = self.DETECTION_DISPLAY_TIME
@@ -236,8 +239,8 @@ class PracticeScreen(BaseScreen):
             default_jutsu = json.load(f)
         with open("setting/user_jutsu.json", encoding="utf-8") as f:
             user_jutsu = json.load(f)
-        combined_jutsu = default_jutsu + user_jutsu
-        for jutsu in combined_jutsu:
+        self.combined_jutsu = default_jutsu + user_jutsu
+        for jutsu in self.combined_jutsu:
             chinese_name = jutsu["name_zh"].strip()
             english_name = jutsu["name_en"].strip().lower()
             normalized_chinese_name = chinese_name.replace(" ", "").lower()
