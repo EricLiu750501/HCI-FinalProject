@@ -24,7 +24,7 @@ class ShowScreen(BaseScreen):
         self.DISPLAY_INTERVAL = 0.8  # in second
         self.font_path = "assets/fonts/NotoSansTC-VariableFont_wght.ttf"
         # self.play_sound = pygame.mixer.Sound("assets/sounds/playsound.mp3")
-        self.play_sound = pygame.mixer.Sound("assets/sounds/test1.mp3")
+        self.play_sound = pygame.mixer.Sound("assets/sounds/test3.mp3")
         
         # init some private variables
         self.jutsu = None
