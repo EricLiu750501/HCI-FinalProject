@@ -93,8 +93,10 @@ class PracticeScreen(BaseScreen):
                         self.detected_jutsu_name = jutsu["chinese_name"]
                         self.is_recording = False
                         self.is_listening = False
-
-                        self.callback("jutsu_detected", self.combined_jutsu[jutsu["index"] - 1])
+                        self.detection_status = True
+                        self.callback(
+                            "jutsu_detected", self.combined_jutsu[jutsu["index"] - 1]
+                        )
                         # minus 1 because jutsu start with id = 1, but list elements start at 0
 
                         break
