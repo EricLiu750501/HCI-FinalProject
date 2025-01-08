@@ -1,3 +1,4 @@
+# screens/practice/practice_screen.py
 import cv2
 import numpy as np
 import copy
@@ -17,7 +18,11 @@ class PracticeScreen(BaseScreen):
         self.background = None
         self.jutsu_list = []
         self.tolerance_terms = {}
-        self.load_resources()
+        self.button_areas = []
+        self.load_resources()  # 初始化時載入一次
+
+        # 初始化按鈕
+        self.__setup_button()
 
         # 載入背景圖片
         self.background = cv2.imread(
@@ -42,72 +47,80 @@ class PracticeScreen(BaseScreen):
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
 
-        # 狀態相關變數
-        self.DETECTION_DISPLAY_TIME = 50  # 顯示時間（幀數）
-        self.reset_states()
-
-    def reset_states(self):
-        """重置所有狀態變數"""
+        # 新增：麥克風狀態
         self.is_recording = False
         self.is_listening = False
         self.listen_thread = None
+
+        # 新增：識別結果顯示相關變數
         self.detected_jutsu_name = ""
         self.user_spoken_text = ""
         self.detection_timer = 0
-        self.detection_status = False
+        self.DETECTION_DISPLAY_TIME = 30  # 顯示時間（幀數）
+        self.detection_status = False  # 是否成功偵測到忍術
 
     def __listen_for_jutsu(self):
         """持續監聽語音輸入"""
         while self.is_listening:
-            try:
-                with self.microphone as source:
-                    self.recognizer.adjust_for_ambient_noise(source)
-                    audio = self.recognizer.listen(source, timeout=None)
-                    text = self.recognizer.recognize_google(audio, language="zh-TW")
+            with self.microphone as source:
+                self.recognizer.adjust_for_ambient_noise(source)
 
-                    self.user_spoken_text = text
-                    normalized_text = text.replace(" ", "").lower()
-                    print(f"使用者輸入: {text}")
+                # listen會偵測音量並偵測聲音大的片段回傳
+                audio = self.recognizer.listen(source, timeout=None)
+                text = self.recognizer.recognize_google(audio, language="zh-TW")
 
-                    # 驗證是否匹配忍術
-                    for jutsu in self.jutsu_list:
-                        normalized_jutsu_cn = jutsu["normalized_chinese_name"]
-                        normalized_jutsu_en = jutsu["english_name"]
-                        possible_terms = self.tolerance_terms.get(
-                            normalized_jutsu_cn, [normalized_jutsu_cn]
-                        )
+                # 保存使用者說的話
+                self.user_spoken_text = text
+                self.detection_status = False
+                normalized_text = text.replace(" ", "").lower()  # 去除空格並轉小寫
+                print(f"使用者輸入: {text}")
 
-                        if (
-                            normalized_jutsu_cn in normalized_text
-                            or normalized_jutsu_en in normalized_text
-                            or any(term in normalized_text for term in possible_terms)
-                        ):
-                            self.detected_jutsu_name = jutsu["chinese_name"]
-                            self.reset_states()  # 重置所有狀態
-                            self.callback("show_screen", jutsu["index"])
-                            return  # 直接返回，不顯示檢測結果
+                # 驗證是否匹配忍術（包含容忍詞表）
+                for jutsu in self.jutsu_list:
+                    normalized_jutsu_cn = jutsu["normalized_chinese_name"]
+                    normalized_jutsu_en = jutsu["english_name"]
 
-                    # 如果沒有匹配到忍術，顯示未知忍術信息
-                    self.detection_timer = self.DETECTION_DISPLAY_TIME
-                    self.detection_status = False
+                    possible_terms = self.tolerance_terms.get(
+                        normalized_jutsu_cn, [normalized_jutsu_cn]
+                    )
 
-            except sr.UnknownValueError:
-                print("無法識別語音")
-            except sr.RequestError as e:
-                print(f"無法連接到Google語音識別服務: {e}")
-            except Exception as e:
-                print(f"語音識別過程發生錯誤: {e}")
+                    if (
+                        normalized_jutsu_cn in normalized_text
+                        or normalized_jutsu_en in normalized_text
+                        or any(term in normalized_text for term in possible_terms)
+                    ):
+                        self.detected_jutsu_name = jutsu["chinese_name"]
+                        self.is_recording = False
+                        self.is_listening = False
+                        self.detection_status = True
+                        self.callback("show_screen", jutsu["index"])
+                        break
+
+                self.detection_timer = self.DETECTION_DISPLAY_TIME
+
+    def __setup_button(self):
+        # 保存麥克風按鈕區域
+        mic_x = 250
+        mic_y = WINDOW_SIZE[1] // 2 - 100
+        self.button_areas.append((mic_x, mic_y, mic_x + 200, mic_y + 200))
+        # 繪製返回按鈕 (移動到左上角)
+        back_x, back_y = 50, 50
+        self.button_areas.append((back_x, back_y, back_x + 200, back_y + 50))
 
     def draw(self, frame):
-        self.button_areas = []
+
+        # 使用背景圖片
         temp_frame = self.background.copy()
 
-        # 繪製忍術列表
+        # 右側顯示忍術列表
         y_offset = 100
         for jutsu in self.jutsu_list:
+            jutsu_ch = jutsu["chinese_name"]
+            jutsu_en = jutsu["english_name"]
+            i = jutsu["index"]
             CvDrawText.puttext(
                 temp_frame,
-                f"{jutsu['chinese_name']} ({jutsu['english_name']})",
+                f"{jutsu_ch} ({jutsu_en})",
                 (800, y_offset),
                 "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
                 28,
@@ -115,14 +128,15 @@ class PracticeScreen(BaseScreen):
             )
             y_offset += 40
 
-        # 繪製麥克風區域
+        # 繪製麥克風圖標（在畫面左側中間）
         mic_x = 250
         mic_y = WINDOW_SIZE[1] // 2 - 100
 
+        # 如果正在錄音，添加紅色背景圓圈
         if self.is_recording:
             cv2.circle(temp_frame, (mic_x + 100, mic_y + 100), 120, (0, 0, 255), -1)
 
-        # 繪製麥克風圖標
+        # 添加麥克風圖標
         if self.mic_icon.shape[2] == 4:
             alpha = self.mic_icon[:, :, 3] / 255.0
             for c in range(3):
@@ -131,8 +145,10 @@ class PracticeScreen(BaseScreen):
                     * (1 - alpha)
                     + self.mic_icon[:, :, c] * alpha
                 )
+        else:
+            temp_frame[mic_y : mic_y + 200, mic_x : mic_x + 200] = self.mic_icon
 
-        # 提示文字
+        # 添加提示文字
         status_text = "點擊開始錄音" if not self.is_recording else "點擊停止錄音"
         CvDrawText.puttext(
             temp_frame,
@@ -143,23 +159,23 @@ class PracticeScreen(BaseScreen):
             (0, 0, 0),
         )
 
-        # 顯示檢測結果
-        if self.detection_timer > 0 and not self.detection_status:
+        # 如果偵測到忍術或說話內容，顯示結果
+        if self.detection_timer > 0 and self.detection_status == False:
+            # 未偵測到忍術
             detection_text = f"未知忍術: {self.user_spoken_text}"
+            text_color = (0, 0, 255)  # 紅色文字
+
             CvDrawText.puttext(
                 temp_frame,
                 detection_text,
                 (50, 600),
                 "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
                 40,
-                (0, 0, 255),
+                text_color,
             )
             self.detection_timer -= 1
 
-        # 保存按鈕區域
-        self.button_areas = [(mic_x, mic_y, mic_x + 200, mic_y + 200)]
-
-        # 繪製返回按鈕
+        # 繪製返回按鈕 (移動到左上角)
         back_x, back_y = 50, 50
         cv2.rectangle(
             temp_frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
@@ -172,7 +188,6 @@ class PracticeScreen(BaseScreen):
             30,
             (255, 255, 255),
         )
-        self.button_areas.append((back_x, back_y, back_x + 200, back_y + 50))
 
         # 將處理後的圖像複製回原始 frame
         frame[:] = temp_frame
@@ -185,7 +200,7 @@ class PracticeScreen(BaseScreen):
                 if i == 0:  # 麥克風按鈕
                     self.is_recording = not self.is_recording
                     if self.is_recording:
-                        # 開始新的錄音會話前重置狀態
+                        # 重置前的識別結果
                         self.detected_jutsu_name = ""
                         self.user_spoken_text = ""
                         self.detection_timer = 0
@@ -202,19 +217,25 @@ class PracticeScreen(BaseScreen):
                         if self.listen_thread:
                             self.listen_thread.join(timeout=1)
                 elif i == 1:  # 返回按鈕
-                    self.reset_states()  # 重置所有狀態
+                    self.is_listening = False
+                    if self.listen_thread:
+                        self.listen_thread.join(timeout=1)
+                    self.is_recording = False
+                    self.is_listening = False
+                    self.detected_jutsu_name = ""
+                    self.user_spoken_text = ""
+                    self.detection_timer = 0
+                    self.detection_status = False
                     self.callback("back")
                 break
 
     def load_resources(self):
-        """載入忍術列表和容忍詞表"""
         # 載入忍術列表
         self.jutsu_list = []
         with open("setting/default_jutsu.json", encoding="utf-8") as f:
             default_jutsu = json.load(f)
         with open("setting/user_jutsu.json", encoding="utf-8") as f:
             user_jutsu = json.load(f)
-
         combined_jutsu = default_jutsu + user_jutsu
         for jutsu in combined_jutsu:
             chinese_name = jutsu["name_zh"].strip()
