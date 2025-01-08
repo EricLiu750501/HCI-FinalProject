@@ -197,7 +197,7 @@ class PerformJutsuScreen(BaseScreen):
     
     def __draw_sequece(self, frame):
         start_x = 10
-        start_y = WINDOW_SIZE[1] - 100
+        start_y = WINDOW_SIZE[1] - 150
         
         blank = 50
         # big_blank = 50
@@ -240,6 +240,10 @@ class PerformJutsuScreen(BaseScreen):
             
             # for spacing
             start_x += blank
+            
+            if (i + 1) % 5 == 0:
+                start_y += blank
+                start_x = 10
             
     def __draw_hint_image(self, frame):
         # draw title
