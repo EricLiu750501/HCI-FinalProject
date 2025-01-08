@@ -24,6 +24,7 @@ class PerformJutsuScreen(BaseScreen):
         self.Hand_Detection_Confidence = 0.1
         self.Hand_Tracking_Confidence = 0.1
         self.PROGRESS_DURATION = 0.8  # how many second to perform a gesture
+        self.TOLERANCE_SEQ_LENGTH = 10 # gestures
         
         # Load labels
         with open("setting/labels.csv", encoding="utf8") as f:
@@ -202,6 +203,16 @@ class PerformJutsuScreen(BaseScreen):
         blank = 50
         # big_blank = 50
         
+        if len(self.cur_jutsu["sequence"]) > self.TOLERANCE_SEQ_LENGTH:
+            CvDrawText.puttext(
+                frame,
+                f"{self.cur_sequence_i + 1} / {len(self.cur_jutsu['sequence'])}",
+                (start_x, start_y),
+                self.font_path, 40, (0, 0, 0)
+            )
+            
+            return
+        
         for i in range(0, len(self.cur_jutsu["sequence"])):
             g_id = self.cur_jutsu["sequence"][i]
             
@@ -210,7 +221,7 @@ class PerformJutsuScreen(BaseScreen):
             else:
                 color = (0, 0, 0)
                 
-            if(g_id == self.cur_jutsu["sequence"][0]):
+            if(i == 0):
                 # draw the first {gesture name}
                 CvDrawText.puttext(
                     frame,
