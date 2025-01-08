@@ -95,8 +95,8 @@ class PracticeScreen(BaseScreen):
                         self.detection_status = True
                         self.callback("show_screen", jutsu["index"])
                         break
-
-                self.detection_timer = self.DETECTION_DISPLAY_TIME
+                if self.detection_status == False:
+                    self.detection_timer = self.DETECTION_DISPLAY_TIME
 
     def __setup_button(self):
         # 保存麥克風按鈕區域
