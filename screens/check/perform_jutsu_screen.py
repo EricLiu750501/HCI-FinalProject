@@ -24,6 +24,7 @@ class PerformJutsuScreen(BaseScreen):
         self.Hand_Detection_Confidence = 0.1
         self.Hand_Tracking_Confidence = 0.1
         self.PROGRESS_DURATION = 0.8  # how many second to perform a gesture
+        self.TOLERANCE_SEQ_LENGTH = 10 # gestures
         
         # Load labels
         with open("setting/labels.csv", encoding="utf8") as f:
@@ -206,18 +207,31 @@ class PerformJutsuScreen(BaseScreen):
     
     def __draw_sequece(self, frame):
         start_x = 10
-        start_y = WINDOW_SIZE[1] - 100
+        start_y = WINDOW_SIZE[1] - 150
         
-        blank = 50
+        blank_x = 100
+        blank_y = 50
         # big_blank = 50
         
-        for g_id in self.cur_jutsu["sequence"]:
-            if g_id == self.cur_jutsu["sequence"][self.cur_sequence_i]:
+        if len(self.cur_jutsu["sequence"]) > self.TOLERANCE_SEQ_LENGTH:
+            CvDrawText.puttext(
+                frame,
+                f"{self.cur_sequence_i + 1} / {len(self.cur_jutsu['sequence'])}",
+                (start_x, start_y),
+                self.font_path, 40, (0, 0, 0)
+            )
+            
+            return
+        
+        for i in range(0, len(self.cur_jutsu["sequence"])):
+            g_id = self.cur_jutsu["sequence"][i]
+            
+            if i == self.cur_sequence_i:
                 color = (255, 0, 0)
             else:
                 color = (0, 0, 0)
                 
-            if(g_id == self.cur_jutsu["sequence"][0]):
+            if(i == 0):
                 # draw the first {gesture name}
                 CvDrawText.puttext(
                     frame,
@@ -225,28 +239,36 @@ class PerformJutsuScreen(BaseScreen):
                     (start_x, start_y),
                     self.font_path, 40, color
                 )
+                
+                # for spacing for the first gesture
+                start_x += blank_x/2
+                continue
             else:
                 # draw an "→" + {gesture name}
                 # for →:
-                CvDrawText.puttext(
-                    frame,
-                    "→",
-                    (start_x, start_y),
-                    self.font_path, 40, color
-                )
+                # CvDrawText.puttext(
+                #     frame,
+                #     "→",
+                #     (start_x, start_y),
+                #     self.font_path, 40, color
+                # )
                 
-                start_x += blank
+                # start_x += blank
                 
                 # for {gesture name}
                 CvDrawText.puttext(
                     frame,
-                    self.gesture_labels[g_id]["g_name_zh"],
+                    f"→  {self.gesture_labels[g_id]['g_name_zh']}",
                     (start_x, start_y),
                     self.font_path, 40, color
                 )
             
             # for spacing
-            start_x += blank
+            start_x += blank_x
+            
+            if (i + 1) % 5 == 0:
+                start_y += blank_y
+                start_x = 10
             
     def __draw_hint_image(self, frame):
         # draw title
