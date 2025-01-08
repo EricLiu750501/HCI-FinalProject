@@ -18,10 +18,6 @@ class HomeScreen(BaseScreen):
         # create button areas
         self.button_areas = []
 
-        # rm_files button settings
-        self.rm_button_titles = ["Reset Created Gestures", "Reset Created Jutsu", "Remove Temp Naruto Gestures"]
-        self.rm_button_functions = [remove_gestures, remove_jutsu, remove_temp]
-        self.rm_button_areas = []
 
     def draw(self, frame):
         # Draw main border for button area
