@@ -11,13 +11,45 @@ class  RemoveFileScreen(BaseScreen):
         self.font_path = FONT
         self.title = "Remove File"
         self.button_titles = ["Reset Created Gestures", "Reset Created Jutsu", "Remove Temp Naruto Gestures"]
-        self.rm_button_functions = [reset_created_gestures, reset_created_jutsu, remove_temp_naruto_gestures]
-        self.rm_button_areas = []
+        self.button_functions = [remove_gestures, remove_jutsu, remove_temp]
+        self.button_areas = []
         self.icon = "assets/icons/edit.png"
         self.selected_index = 0
 
+        self.button_width = 250
+        self.button_height = 100
+        self.gap = 15
+        self.total_height = self.button_height 
+
+        self.start_y = (WINDOW_SIZE[1] - self.total_height) // 2
+        self.x = WINDOW_SIZE[0] // 2
+        for i, button_name in enumerate(self.button_titles):
+            y1 = self.start_y + i * (self.button_height + self.gap)
+            x1 = self.x
+
+            y2 = y1 + self.button_height
+            x2 = x1 + self.button_width
+            self.button_areas.append((x1, y1, x2, y2, button_name))
+
+
 
     def draw(self, frame):
+        
+
+        
+        for i, button_name in enumerate(self.button_titles):
+            y1 = self.start_y + i * (self.button_height + self.gap)
+            x1 = self.x
+            hover = i
+            draw_button(
+                frame,
+                button_name,
+                "assets/icons/icon_trash_bin.png",
+                (x1, y1),
+                (self.button_width, self.button_height),
+                selected=False,
+                hover=hover,
+            )
         # Draw buttons
         back_x, back_y = 950, WINDOW_SIZE[1] - 100
         cv2.rectangle(
@@ -32,26 +64,6 @@ class  RemoveFileScreen(BaseScreen):
             (255, 255, 255),
         )
         self.button_areas.append((back_x, back_y, back_x + 200, back_y + 50, "back"))
-
-        back_x, back_y = 450, 200
-        gap_y = 100
-        # Draw button2
-        for buttons_name in self.button_titles:
-            cv2.rectangle(
-                frame, (back_x, back_y), (back_x + 500, back_y + 50), (0, 255, 255), -1
-            )
-            CvDrawText.puttext(
-                frame,
-                buttons_name,
-                (back_x + 70, back_y + 10),
-                self.font_path,
-                30,
-                (0,0,0),
-            )
-            self.button_areas.append((back_x, back_y, back_x + 500, back_y + 50, buttons_name))
-            back_y += gap_y
-
-
 
     def handle_click(self, x, y):
         for x1, y1, x2, y2, action in self.button_areas:

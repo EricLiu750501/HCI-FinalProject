@@ -106,53 +106,51 @@ class HomeScreen(BaseScreen):
             (exit_x, exit_y, exit_x + button_width, exit_y + button_height // 2)
         )
 
-
-
-        # Draw Remove File button
-        back_x, back_y = 150, 500
-        gap_y = 50
-        # Draw button2
-        for buttons_name in self.rm_button_titles:
-            cv2.rectangle(
-                frame, (back_x, back_y), (back_x + 300, back_y + 25), (0, 255, 255), -1
-            )
-            CvDrawText.puttext(
-                frame,
-                buttons_name,
-                (back_x + 30, back_y + 5),
-                self.font_path,
-                20,
-                (0,0,0),
-            )
-            self.rm_button_areas.append((back_x, back_y, back_x + 300, back_y + 25, buttons_name))
-            back_y += gap_y
-
-
+        # Draw Setting File button
+        setting_x = 10
+        setting_y = WINDOW_SIZE[1] - button_height - 10
+        draw_button(
+            frame,
+            "Setting",
+            "assets/icons/icon_gear.png",
+            (setting_x, setting_y),
+            (button_width, button_height),
+            selected=False,
+            hover=False,
+        )
+        self.button_areas.append(
+            (setting_x, setting_y, setting_x + button_width, setting_y + button_height)
+        )
+        
+        
     def handle_click(self, x, y):
         for i, (x1, y1, x2, y2) in enumerate(self.button_areas):
             if x1 <= x <= x2 and y1 <= y <= y2:
-                if i == len(BUTTONS) + len(DEV_BUTTONS):  # Exit button
+                self.selected_index = i
+                if i == 0:
+                    self.callback("add_gesture")
+                elif i == 1:
+                    self.callback("check_gesture")
+                elif i == 2:
+                    self.callback("edit")
+                elif i == 3:
+                    self.callback("practice_screen")
+                elif i == 4:
+                    self.callback("gesture_screen_model")
+                elif i == 5:
+                    self.callback("input_box_screen_model")
+                elif i == 6:
                     self.callback("exit")
-                else:
-                    self.selected_index = i
-                    if i == 0:
-                        self.callback("add_gesture")
-                    elif i == 1:
-                        self.callback("check_gesture")
-                    elif i == 2:
-                        self.callback("edit")
-                    elif i == 3:
-                        self.callback("practice_screen")
-                    elif i == 4:
-                        self.callback("gesture_screen_model")
-                    elif i == 5:
-                        self.callback("input_box_screen_model")
+                elif i == 7:
+                    self.callback("remove_file")
                     
                 break
-        for x1, y1, x2, y2, action in self.rm_button_areas:
-            if x1 <= x <= x2 and y1 <= y <= y2:
-                for button_name, button_function in zip(self.rm_button_titles, self.rm_button_functions):
-                    if action == button_name:
-                        button_function()
-                        break
-                break
+        
+        
+        # for x1, y1, x2, y2, action in self.rm_button_areas:
+        #     if x1 <= x <= x2 and y1 <= y <= y2:
+        #         for button_name, button_function in zip(self.rm_button_titles, self.rm_button_functions):
+        #             if action == button_name:
+        #                 button_function()
+        #                 break
+        #         break
