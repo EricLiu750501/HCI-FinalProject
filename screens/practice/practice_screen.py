@@ -19,7 +19,11 @@ class PracticeScreen(BaseScreen):
         self.jutsu_list = []
         self.combined_jutsu = None
         self.tolerance_terms = {}
+        self.button_areas = []
         self.load_resources()  # 初始化時載入一次
+
+        # 初始化按鈕
+        self.__setup_button()
 
         # 載入背景圖片
         self.background = cv2.imread(
@@ -53,7 +57,7 @@ class PracticeScreen(BaseScreen):
         self.detected_jutsu_name = ""
         self.user_spoken_text = ""
         self.detection_timer = 0
-        self.DETECTION_DISPLAY_TIME = 100  # 顯示時間（幀數）
+        self.DETECTION_DISPLAY_TIME = 30  # 顯示時間（幀數）
         self.detection_status = False  # 是否成功偵測到忍術
 
     def __listen_for_jutsu(self):
@@ -89,16 +93,26 @@ class PracticeScreen(BaseScreen):
                         self.detected_jutsu_name = jutsu["chinese_name"]
                         self.is_recording = False
                         self.is_listening = False
+                        self.detection_status = True
                         self.callback(
                             "jutsu_detected", self.combined_jutsu[jutsu["index"] - 1]
                         )
                         # minus 1 because jutsu start with id = 1, but list elements start at 0
-                        break
 
-                self.detection_timer = self.DETECTION_DISPLAY_TIME
+                        break
+                if self.detection_status == False:
+                    self.detection_timer = self.DETECTION_DISPLAY_TIME
+
+    def __setup_button(self):
+        # 保存麥克風按鈕區域
+        mic_x = 250
+        mic_y = WINDOW_SIZE[1] // 2 - 100
+        self.button_areas.append((mic_x, mic_y, mic_x + 200, mic_y + 200))
+        # 繪製返回按鈕 (移動到左上角)
+        back_x, back_y = 50, 50
+        self.button_areas.append((back_x, back_y, back_x + 200, back_y + 50))
 
     def draw(self, frame):
-        self.button_areas = []
 
         # 使用背景圖片
         temp_frame = self.background.copy()
@@ -151,15 +165,10 @@ class PracticeScreen(BaseScreen):
         )
 
         # 如果偵測到忍術或說話內容，顯示結果
-        if self.detection_timer > 0:
-            if self.detection_status:
-                # 成功偵測到忍術(偵錯用，會直接跳到另一個螢幕不會顯示)
-                detection_text = f"已偵測到: {self.detected_jutsu_name}"
-                text_color = (0, 255, 0)  # 綠色文字
-            else:
-                # 未偵測到忍術
-                detection_text = f"未知忍術: {self.user_spoken_text}"
-                text_color = (0, 0, 255)  # 紅色文字
+        if self.detection_timer > 0 and self.detection_status == False:
+            # 未偵測到忍術
+            detection_text = f"未知忍術: {self.user_spoken_text}"
+            text_color = (0, 0, 255)  # 紅色文字
 
             CvDrawText.puttext(
                 temp_frame,
@@ -170,9 +179,6 @@ class PracticeScreen(BaseScreen):
                 text_color,
             )
             self.detection_timer -= 1
-
-        # 保存麥克風按鈕區域
-        self.button_areas = [(mic_x, mic_y, mic_x + 200, mic_y + 200)]
 
         # 繪製返回按鈕 (移動到左上角)
         back_x, back_y = 50, 50
@@ -192,9 +198,6 @@ class PracticeScreen(BaseScreen):
             FONT_BOLD,
             30,
             (255, 255, 255),
-        )
-        self.button_areas.append(
-            (back_x, back_y, back_x + func_button_width, back_y + func_button_height)
         )
 
         # 將處理後的圖像複製回原始 frame
@@ -228,6 +231,12 @@ class PracticeScreen(BaseScreen):
                     self.is_listening = False
                     if self.listen_thread:
                         self.listen_thread.join(timeout=1)
+                    self.is_recording = False
+                    self.is_listening = False
+                    self.detected_jutsu_name = ""
+                    self.user_spoken_text = ""
+                    self.detection_timer = 0
+                    self.detection_status = False
                     self.callback("back")
                 break
 
