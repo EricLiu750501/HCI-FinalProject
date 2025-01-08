@@ -12,14 +12,9 @@ import tkinter as tk
 class AddGestureScreen(BaseScreen):
     
     def __init__(self, callback):
-        # self.root = tk.Tk()
-        # self.root.withdraw()
-        # self.root.title("定義招式名稱")
-        # self.user_input = tk.StringVar()
-        # self.entry = tk.Entry(self.root, textvariable=self.user_input, width=50)
-        # self.entry.pack(pady=10)
-
-
+        self.background = cv2.imread("assets/images/AddScreenBG.png")
+        self.background = cv2.resize(self.background, WINDOW_SIZE)
+    
         super().__init__(callback)
         self.font_path = FONT
         self.colors = {
@@ -88,7 +83,14 @@ class AddGestureScreen(BaseScreen):
 
     def draw(self, frame):
         frame.fill(0)
-        frame[:] = (50, 50, 50)  # Fill frame with gray
+        # 載入背景圖片
+        if self.background is not None:
+            frame[:] = self.background
+        else:
+            # 如果背景圖片無法載入，使用白色背景
+            frame[:] = (255, 255, 255)
+
+        # frame[:] = (50, 50, 50)  # Fill frame with gray
 
         # 繪製返回按鈕
         back_x, back_y = 950, WINDOW_SIZE[1] - 100
@@ -106,7 +108,7 @@ class AddGestureScreen(BaseScreen):
         self.button_areas.append((back_x, back_y, back_x + 200, back_y + 50))
 
         # Vertical separator line
-        cv2.line(frame, (900, 0), (900, WINDOW_SIZE[1]), (200, 200, 200), 2)
+        # cv2.line(frame, (900, 0), (900, WINDOW_SIZE[1]), (200, 200, 200), 2)
 
         image = self.__face_tracking()
 
