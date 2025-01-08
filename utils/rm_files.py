@@ -50,7 +50,7 @@ def remove_gesture_files():
 
 # Example usage
 
-def remove_all():
+def remove_all_dev():
     reset_created_gestures()
     reset_created_jutsu()
     remove_temp_naruto_gestures()
@@ -87,9 +87,12 @@ def remove_jutsu():
 def remove_temp():  # 移除偷截圖的暫存檔
     confirm_and_execute(remove_temp_naruto_gestures)
 
+def remove_all():
+    confirm_and_execute(remove_all_dev)
+
 # Run for just testing
 if __name__ == '__main__':
-    # remove_all()
+    # remove_all_dev()
     pass
 
 

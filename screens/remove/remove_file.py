@@ -10,18 +10,18 @@ class  RemoveFileScreen(BaseScreen):
         super().__init__(callback)
         self.font_path = FONT
         self.title = "Remove File"
-        self.button_titles = ["Reset Created Gestures", "Reset Created Jutsu", "Remove Temp Naruto Gestures"]
-        self.button_functions = [remove_gestures, remove_jutsu, remove_temp]
+        self.button_titles = ["Reset Created Gestures", "Reset Created Jutsu", "Remove Temp Naruto Gestures", "Remove ALL FILES"]
+        self.button_functions = [remove_gestures, remove_jutsu, remove_temp, remove_all]
         self.button_areas = []
         self.icon = "assets/icons/edit.png"
         self.selected_index = 0
 
-        self.button_width = 250
+        self.button_width = 350
         self.button_height = 100
         self.gap = 15
         self.total_height = self.button_height 
 
-        self.start_y = (WINDOW_SIZE[1] - self.total_height) // 2
+        self.start_y = self.total_height // 2
         self.x = WINDOW_SIZE[0] // 2
         for i, button_name in enumerate(self.button_titles):
             y1 = self.start_y + i * (self.button_height + self.gap)
