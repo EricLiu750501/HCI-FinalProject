@@ -182,8 +182,8 @@ class CheckGestureScreen(BaseScreen):
                             )
 
                         # display result to screen
-                        start_x = 50
-                        start_y = WINDOW_SIZE[1] - 350
+                        start_x = 220
+                        start_y = WINDOW_SIZE[1] - 80
 
                         CvDrawText.puttext(
                             frame,
