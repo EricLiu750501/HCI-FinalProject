@@ -22,22 +22,12 @@ class HomeScreen(BaseScreen):
     def draw(self, frame):
         # Draw main border for button area
         # draw left bar
-        right_panel_width = 200
+        right_panel_width = 230
         right_panel_x = WINDOW_SIZE[0] - right_panel_width
         cv2.rectangle(
             frame,
             (right_panel_x, 0),
             (WINDOW_SIZE[0], WINDOW_SIZE[1]),
-            (100, 100, 100),
-            2,
-        )
-
-        # draw top bar
-        top_side_bar_height = 200
-        cv2.rectangle(
-            frame,
-            (0, 0),
-            (right_panel_x, top_side_bar_height),
             (100, 100, 100),
             2,
         )
@@ -50,7 +40,7 @@ class HomeScreen(BaseScreen):
         # Calculate starting y position for main buttons
         total_height = button_height * len(BUTTONS) + gap * (len(BUTTONS) - 1)
         start_y = (WINDOW_SIZE[1] - total_height) // 2
-        x = WINDOW_SIZE[0] - button_width - 10
+        x = WINDOW_SIZE[0] - button_width - 30
 
         # Draw main buttons
         for i, text in enumerate(BUTTONS):
@@ -67,28 +57,10 @@ class HomeScreen(BaseScreen):
             )
             self.button_areas.append((x, y, x + button_width, y + button_height))
 
-        # Calculate starting x position for dev buttons
-        total_width = button_width * len(DEV_BUTTONS) + gap * (len(DEV_BUTTONS) - 1)
-        start_x = (WINDOW_SIZE[0] - total_width) // 2
-        y = 100
-
-        # Draw develope areas buttons
-        for i, text in enumerate(DEV_BUTTONS):
-            x = start_x + i * (button_width + gap)
-            draw_button(
-                frame,
-                text,
-                ICONS[i],
-                (x, y),
-                (button_width, button_height),
-                selected=False,
-                hover=False,
-            )
-            self.button_areas.append((x, y, x + button_width, y + button_height))
 
         # Draw exit button
-        exit_x = WINDOW_SIZE[0] - button_width - 10
-        exit_y = exit_y = WINDOW_SIZE[1] - button_height // 2
+        exit_x = WINDOW_SIZE[0] - button_width - 30
+        exit_y = exit_y = WINDOW_SIZE[1] - button_height // 2 - 30
         draw_button(
             frame,
             "Exit",
@@ -103,8 +75,8 @@ class HomeScreen(BaseScreen):
         )
 
         # Draw Setting File button
-        setting_x = 10
-        setting_y = WINDOW_SIZE[1] - button_height - 10
+        setting_x = 20
+        setting_y = WINDOW_SIZE[1] - button_height - 30
         draw_button(
             frame,
             "Setting",
@@ -132,12 +104,8 @@ class HomeScreen(BaseScreen):
                 elif i == 3:
                     self.callback("practice_screen")
                 elif i == 4:
-                    self.callback("gesture_screen_model")
-                elif i == 5:
-                    self.callback("input_box_screen_model")
-                elif i == 6:
                     self.callback("exit")
-                elif i == 7:
+                elif i == 5:
                     self.callback("remove_file")
                     
                 break

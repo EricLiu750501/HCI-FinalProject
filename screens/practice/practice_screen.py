@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import copy
 from screens.base_screen import BaseScreen
-from utils.constants import WINDOW_SIZE, FONT
+from utils.constants import WINDOW_SIZE, FONT_BOLD
 from model.yolox.yolox_onnx import YoloxONNX
 import random
 import json
@@ -127,11 +127,11 @@ class PracticeScreen(BaseScreen):
                 temp_frame,
                 f"{jutsu_ch} ({jutsu_en})",
                 (800, y_offset),
-                "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
+                FONT_BOLD,
                 28,
                 (0, 0, 0),
             )
-            y_offset += 40
+            y_offset += 50
 
         # 繪製麥克風圖標（在畫面左側中間）
         mic_x = 250
@@ -159,7 +159,7 @@ class PracticeScreen(BaseScreen):
             temp_frame,
             status_text,
             (mic_x, mic_y + 220),
-            "assets/fonts/NotoSansTC-Bold.ttf",
+            FONT_BOLD,
             30,
             (0, 0, 0),
         )
@@ -173,8 +173,8 @@ class PracticeScreen(BaseScreen):
             CvDrawText.puttext(
                 temp_frame,
                 detection_text,
-                (50, 600),
-                "assets/fonts/NotoSansTC-VariableFont_wght.ttf",
+                (50, 150),
+                FONT_BOLD,
                 40,
                 text_color,
             )
@@ -182,14 +182,20 @@ class PracticeScreen(BaseScreen):
 
         # 繪製返回按鈕 (移動到左上角)
         back_x, back_y = 50, 50
+        func_button_width = 150
+        func_button_height = 60
         cv2.rectangle(
-            temp_frame, (back_x, back_y), (back_x + 200, back_y + 50), (0, 0, 255), -1
+            temp_frame,
+            (back_x, back_y),
+            (back_x + func_button_width, back_y + func_button_height),
+            (40, 40, 245),
+            -1,
         )
         CvDrawText.puttext(
             temp_frame,
             "返回",
-            (back_x + 70, back_y + 10),
-            FONT,
+            (back_x + 45, back_y + 10),
+            FONT_BOLD,
             30,
             (255, 255, 255),
         )

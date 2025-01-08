@@ -11,7 +11,8 @@ from model.yolox.yolox_onnx import YoloxONNX
 # custom packages
 from screens.base_screen import BaseScreen
 from utils.CvDrawText import CvDrawText
-from utils.constants import WINDOW_SIZE, FONT
+from utils.constants import WINDOW_SIZE, FONT_BOLD
+
 
 class CheckGestureScreen(BaseScreen):
     def __init__(self, callback):
@@ -24,18 +25,18 @@ class CheckGestureScreen(BaseScreen):
         self.Hand_Tracking_Confidence = 0.8
 
         # init some private varibles here
-        self.font_path = FONT
+        self.font_path = FONT_BOLD
         self.button_areas = []
-        
+
         # Load labels
         with open("setting/labels.csv", encoding="utf8") as f:
             labels = csv.reader(f)
             self.labels = [row for row in labels]
-        
+
         # set a flag to track if this is user's first time checking gesture
         self.first_time_check = True
         self.created_gestures_d = None
-            
+
         # Camera setup
         # self.cap = None
         self.cap = cv2.VideoCapture(0)  # Open default camera
@@ -68,14 +69,17 @@ class CheckGestureScreen(BaseScreen):
             nms_score_th=nms_score_th,
         )
 
-
     def draw(self, frame):
-        frame[:] = (150, 150, 150)  # gray BG
-
-        # add title
-        CvDrawText.puttext(
-            frame, "檢查手勢", (10, 10), self.font_path, 48, color=(0, 0, 0)
-        )
+        # 載入背景圖片
+        background_image = cv2.imread("assets/images/GestureDetectionBG.png")
+        if background_image is not None:
+            # 確保背景圖片大小符合視窗大小
+            background_image = cv2.resize(
+                background_image, (frame.shape[1], frame.shape[0])
+            )
+            frame[:] = background_image
+        else:
+            frame[:] = (150, 150, 150)  # gray BG
 
         # reload cap if needed
         if self.cap == None:
@@ -83,7 +87,7 @@ class CheckGestureScreen(BaseScreen):
             if not self.cap.isOpened():
                 print("Cannot open camera, please check the device.")
                 self.cap = None
-            
+
         # start showing the cam frame
         ret, image = self.cap.read()
 
@@ -123,8 +127,8 @@ class CheckGestureScreen(BaseScreen):
                 cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
                 # draw result in frame
-                start_x = 350
-                start_y = WINDOW_SIZE[1] - 90
+                start_x = 220
+                start_y = WINDOW_SIZE[1] - 80
 
                 CvDrawText.puttext(
                     frame,
@@ -143,37 +147,43 @@ class CheckGestureScreen(BaseScreen):
                 if results.multi_hand_landmarks and results.multi_handedness:
                     right_hand_raw = []
                     left_hand_raw = []
-                    
+
                     for hand_landmarks, handedness in zip(
                         results.multi_hand_landmarks, results.multi_handedness
                     ):
                         # for each hand
-                        
+
                         # save raw points for each hand
-                        landmarks = [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark]
-                        hand_label = handedness.classification[0].label  # "Left" or "Right"
-                        
+                        landmarks = [
+                            [lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark
+                        ]
+                        hand_label = handedness.classification[
+                            0
+                        ].label  # "Left" or "Right"
+
                         if hand_label == "Right":
                             right_hand_raw = landmarks
                         elif hand_label == "Left":
                             left_hand_raw = landmarks
-                            
-                    [right_d, left_d] = self.__get_current_gesture_d(right_hand_raw, left_hand_raw)
-                    
+
+                    [right_d, left_d] = self.__get_current_gesture_d(
+                        right_hand_raw, left_hand_raw
+                    )
+
                     gesture_id = self.__check_current_gesture(right_d, left_d)
-                    
+
                     if gesture_id != None:
                         # Congrats! find the gesture, draw & display it
-                        
+
                         # draw the result of lms in cap image first
                         for hand_landmarks in results.multi_hand_landmarks:
                             self.drawing_utils.draw_landmarks(
                                 image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS
                             )
-                            
+
                         # display result to screen
-                        start_x = 350
-                        start_y = WINDOW_SIZE[1] - 90
+                        start_x = 220
+                        start_y = WINDOW_SIZE[1] - 80
 
                         CvDrawText.puttext(
                             frame,
@@ -183,12 +193,12 @@ class CheckGestureScreen(BaseScreen):
                             30,
                             (0, 0, 0),
                         )
-                        
+
                         # reset gesture_id
                         gesture_id = None
 
             # resize the cam frame to fit the frame
-            frame[70 : 70 + 480, 300 : 300 + 640] = cv2.resize(image, (640, 480))
+            frame[120 : 120 + 480, 300 : 300 + 640] = cv2.resize(image, (640, 480))
 
         # draw buttons
         self.__draw_buttons(frame)
@@ -199,13 +209,13 @@ class CheckGestureScreen(BaseScreen):
                 # free openCV cam for next usage
                 self.cap.release()
                 self.cap = None
-                
+
                 # reset flags so the next time we reload the JSON
                 self.first_time_check = True
-                
+
                 self.callback("back")
                 break
-            
+
     def release_cap(self):
         self.cap.release()
 
@@ -213,24 +223,24 @@ class CheckGestureScreen(BaseScreen):
 
     def __draw_buttons(self, frame):
         # init some button attributes
-        btn_width = 200
-        btn_height = 50
+        btn_width = 150
+        btn_height = 60
 
         # draw back button
-        back_x, back_y = 50, WINDOW_SIZE[1] - 100
+        back_x, back_y = 50, 50
 
         cv2.rectangle(
             frame,
             (back_x, back_y),
             (back_x + btn_width, back_y + btn_height),
-            (0, 0, 255),
+            (40, 40, 245),
             -1,
         )
 
         CvDrawText.puttext(
             frame,
             "返回",
-            (back_x + 70, back_y + 10),
+            (back_x + 45, back_y + 10),
             self.font_path,
             30,
             (255, 255, 255),
@@ -243,75 +253,83 @@ class CheckGestureScreen(BaseScreen):
     def __get_current_gesture_d(self, right_hand_raw, left_hand_raw):
         # Goal is to get all lm's distance from (ID = 0)'s lm (the palm)
         # from MediaPipe the lm for palm is the first point in our raw data
-        
+
         # Right Hand:
         distance_right = []
         if right_hand_raw != []:
             base_point_right = np.array(right_hand_raw[0])
-            
+
             for i, point in enumerate(right_hand_raw):
                 if i != 0:
-                    distance_right.append(np.linalg.norm(np.array(point) - base_point_right))
-                
+                    distance_right.append(
+                        np.linalg.norm(np.array(point) - base_point_right)
+                    )
+
         # Left Hand:
         distance_left = []
         if left_hand_raw != []:
             base_point_left = np.array(left_hand_raw[0])
-            
+
             for i, point in enumerate(left_hand_raw):
                 if i != 0:
-                    distance_left.append(np.linalg.norm(np.array(point) - base_point_left))
-        
-        
+                    distance_left.append(
+                        np.linalg.norm(np.array(point) - base_point_left)
+                    )
+
         return [distance_right, distance_left]
-    
+
     def __check_current_gesture(self, right_d, left_d):
         # Mediapipe will bug out at line 138
         # there are no hands on the screen but it says there are...
         # Consequently, divide by 0 error occurs, adding this if statement to protect
         if len(right_d) == 0 and len(left_d) == 0:
             return None
-        
+
         # re-load the file in case user added new gestures (if necessery)
         if self.first_time_check:
-            with open("setting/created_gestures_d.json", mode="r", encoding="utf8") as created_gestures_d:
+            with open(
+                "setting/created_gestures_d.json", mode="r", encoding="utf8"
+            ) as created_gestures_d:
                 self.created_gestures_d = json.load(created_gestures_d)
-            
+
             self.first_time_check = False
-            
+
         for created_gesture_d in self.created_gestures_d:
             # for each created gesture
             right_mean_d = 0
             left_mean_d = 0
-            
+
             if created_gesture_d["right_d"] != [] and created_gesture_d["left_d"] != []:
                 # Both hands comparation
                 # right hand part:
                 if len(right_d) == 0:
                     # user currently doesnt use right hand, goto next sample
                     continue
-                
+
                 for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
                     # compare
                     right_mean_d += abs(sample_d - cur_d)
-                    
+
                 # left hand part:
                 if len(left_d) == 0:
                     # user currently doesnt use left hand, goto next sample
                     continue
-                
+
                 for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
                     # compare
                     left_mean_d += abs(sample_d - cur_d)
-                    
+
                 # take mean
                 right_mean_d /= len(right_d)
                 left_mean_d /= len(left_d)
-                
+
                 # print(f"right: {right_mean_d}")
                 # print(f"left: {left_mean_d}")
-                
-                if right_mean_d < self.DETECTION_MIN_D and left_mean_d < self.DETECTION_MIN_D:
+
+                if (
+                    right_mean_d < self.DETECTION_MIN_D
+                    and left_mean_d < self.DETECTION_MIN_D
+                ):
                     # congrats! we get the gesture
                     return created_gesture_d["g_id"]
             elif created_gesture_d["left_d"] == []:
@@ -319,37 +337,36 @@ class CheckGestureScreen(BaseScreen):
                 if len(right_d) == 0:
                     # user currently doesnt use right hand, goto next sample
                     continue
-                
+
                 for sample_d, cur_d in zip(created_gesture_d["right_d"], right_d):
                     # compare
                     right_mean_d += abs(sample_d - cur_d)
-                    
-                
+
                 # take mean
                 right_mean_d /= len(right_d)
-                
+
                 # print(f"right: {right_mean_d}")
-                
+
                 if right_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
                     return created_gesture_d["g_id"]
-            else:                                
+            else:
                 # left hand only:
                 if len(left_d) == 0:
                     # user currently doesnt use right hand, goto next sample
                     continue
-                
+
                 for sample_d, cur_d in zip(created_gesture_d["left_d"], left_d):
                     # compare
                     left_mean_d += abs(sample_d - cur_d)
-                    
+
                 # take mean
                 left_mean_d /= len(left_d)
-                
+
                 # print(f"left: {left_mean_d}")
-                
+
                 if left_mean_d < self.DETECTION_MIN_D:
                     # congrats! we get the gesture
                     return created_gesture_d["g_id"]
-                
+
         return None
