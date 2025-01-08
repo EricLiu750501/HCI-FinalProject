@@ -57,24 +57,6 @@ class HomeScreen(BaseScreen):
             )
             self.button_areas.append((x, y, x + button_width, y + button_height))
 
-        # Calculate starting x position for dev buttons
-        total_width = button_width * len(DEV_BUTTONS) + gap * (len(DEV_BUTTONS) - 1)
-        start_x = (WINDOW_SIZE[0] - total_width) // 2
-        y = 100
-
-        # Draw develope areas buttons
-        for i, text in enumerate(DEV_BUTTONS):
-            x = start_x + i * (button_width + gap)
-            draw_button(
-                frame,
-                text,
-                ICONS[i],
-                (x, y),
-                (button_width, button_height),
-                selected=False,
-                hover=False,
-            )
-            self.button_areas.append((x, y, x + button_width, y + button_height))
 
         # Draw exit button
         exit_x = WINDOW_SIZE[0] - button_width - 10
@@ -122,12 +104,8 @@ class HomeScreen(BaseScreen):
                 elif i == 3:
                     self.callback("practice_screen")
                 elif i == 4:
-                    self.callback("gesture_screen_model")
-                elif i == 5:
-                    self.callback("input_box_screen_model")
-                elif i == 6:
                     self.callback("exit")
-                elif i == 7:
+                elif i == 5:
                     self.callback("remove_file")
                     
                 break

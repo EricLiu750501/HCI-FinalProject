@@ -8,12 +8,12 @@ ICONS = [
 ]
 NUM_BUTTONS = len(BUTTONS)
 
-DEV_BUTTONS = ["Gesture_Model", "Input_Box_Model"]
+
 DEV_ICONS = [
     "assets/icons/icon_check.png",
     "assets/icons/icon_add.png",
 ]
-NUM_DEV_BUTTONS = len(DEV_BUTTONS)
+
 
 FONT = "assets/fonts/NotoSansTC-VariableFont_wght.ttf"
 FONT_BOLD = "assets/fonts/NotoSansTC-Bold.ttf"
