@@ -12,7 +12,7 @@ project/
 │   │   └── temp_naruto_gestures       # 暫存手勢圖片文件夾
 │   │       └── readme.md              # 暫存手勢圖片說明文件
 │   ├── sounds                         # 聲音文件夾
-│   └── video                          # 視頻文件夾
+│   └── video                          # 影片文件夾
 ├── main.py                            # 主程式入口
 ├── model                              # 模型文件夾
 │   └── yolox                          # YOLOX 模型文件夾
