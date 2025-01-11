@@ -12,14 +12,6 @@ import tkinter as tk
 class AddGestureScreen(BaseScreen):
     
     def __init__(self, callback):
-        # self.root = tk.Tk()
-        # self.root.withdraw()
-        # self.root.title("定義招式名稱")
-        # self.user_input = tk.StringVar()
-        # self.entry = tk.Entry(self.root, textvariable=self.user_input, width=50)
-        # self.entry.pack(pady=10)
-
-
         super().__init__(callback)
         self.font_path = FONT
         self.colors = {
@@ -54,7 +46,6 @@ class AddGestureScreen(BaseScreen):
 
         self.landmark_sections = [self.FACEPOINTS.FACEMESH_LEFT_EYEBROW,
                             self.FACEPOINTS.FACEMESH_RIGHT_EYEBROW]
-        
         self.landmark_colors = [self.colors["red"], self.colors["green"]]
 
 
@@ -69,21 +60,6 @@ class AddGestureScreen(BaseScreen):
         if not self.cap.isOpened():
             print("Cannot open camera, please check the device.")
             self.cap = None
-
-  
-
-
-
-    def __drawMarks(self, frame, landmark):
-        # 將地標座標轉換為像素位置
-        h, w, _ = frame.shape  # 取得影像大小
-        x, y = int(landmark.x * w), int(landmark.y * h)
-       
-        if self.debug_mode: # 在畫面上畫圓標註地標（可不畫）
-            cv2.circle(frame, (x, y), 3, self.colors["green"], -1)
-        return x, y # return 像素位置
-
-
 
 
     def draw(self, frame):
@@ -215,6 +191,14 @@ class AddGestureScreen(BaseScreen):
         
         return frame
 
+    def __drawMarks(self, frame, landmark):
+            # 將地標座標轉換為像素位置
+            h, w, _ = frame.shape  # 取得影像大小
+            x, y = int(landmark.x * w), int(landmark.y * h)
+        
+            if self.debug_mode: # 在畫面上畫圓標註地標（可不畫）
+                cv2.circle(frame, (x, y), 3, self.colors["green"], -1)
+            return x, y # return 像素位置
 
 
     def __record_gesture(self, hands_results, frame):
