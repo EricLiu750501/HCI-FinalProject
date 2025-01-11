@@ -75,8 +75,6 @@ class AddGestureScreen(BaseScreen):
             # 如果背景圖片無法載入，使用白色背景
             frame[:] = (255, 255, 255)
 
-        # frame[:] = (50, 50, 50)  # Fill frame with gray
-
         # 繪製返回按鈕
         back_x, back_y = 1100, WINDOW_SIZE[1] - 100
         func_button_width = 150
@@ -99,9 +97,6 @@ class AddGestureScreen(BaseScreen):
         self.button_areas.append(
             (back_x, back_y, back_x + func_button_width, back_y + func_button_height)
         )
-
-        # Vertical separator line
-        # cv2.line(frame, (900, 0), (900, WINDOW_SIZE[1]), (200, 200, 200), 2)
 
         image = self.__face_tracking()
 
@@ -276,10 +271,8 @@ class AddGestureScreen(BaseScreen):
 
                 if hand_type == "Left":
                     gesture_hand_points["left_d"] = array
-                    # gesture_hand_points["hand_num"] += 1
                 elif hand_type == "Right":
                     gesture_hand_points["right_d"] = array
-                    # gesture_hand_points["hand_num"] += 1
 
         # 開啟 Tkinter 視窗，讓使用者輸入招式名稱
         is_add, name_zh, name_en = self.__tk_get_char()
@@ -288,7 +281,6 @@ class AddGestureScreen(BaseScreen):
             return 0
 
         # 儲存圖片
-        # self.have_to_storage_image = True
         self.__image_storage(frame)
 
         # 儲存 json
