@@ -40,8 +40,6 @@ def remove_gesture_files():
                     if os.path.isfile(file_path):
                         os.remove(file_path)
                         print(f'Removed file: {file_path}')
-            # except ValueError:
-            #     continue
     print('Removed all gesture_* files with number greater than 12.')
 
 
@@ -52,17 +50,6 @@ def remove_all_dev():
     reset_created_jutsu()
     remove_temp_naruto_gestures()
     remove_gesture_files()
-
-# def remove_gestures():
-#     remove_gesture_files()
-#     reset_created_gestures()
-#     reset_created_jutsu()
-
-# def remove_jutsu():
-#     reset_created_jutsu()
-
-# def remove_temp(): # 移除偷截圖的暫存檔
-#     remove_temp_naruto_gestures()
 
 def confirm_and_execute(action):
     top = tk.Toplevel()
@@ -91,7 +78,3 @@ def remove_all():
 if __name__ == '__main__':
     # remove_all_dev()
     pass
-
-
-
-# 移除序列手勢 setting/user_jutsu.json

@@ -5,9 +5,7 @@ import mediapipe as mp
 import pygame
 from screens.home_screen import HomeScreen
 
-# from screens.gesture_screen import GestureScreen
 from screens.practice.practice_screen import PracticeScreen
-from screens.gesture_model_screen import GestureScreen
 from screens.add.add_gesture_screen import AddGestureScreen
 from screens.check.check_gesture_screen import CheckGestureScreen
 from screens.check.perform_jutsu_screen import PerformJutsuScreen
@@ -44,7 +42,6 @@ class GameManager:
         self.practice_screen = PracticeScreen(self._handle_button_click)
         self.perform_jutsu_screen = PerformJutsuScreen(self._handle_button_click)
 
-        self.gesture_screen_model = GestureScreen(self._handle_button_click)
         self.show_screen = ShowScreen(self._handle_button_click)
         self.rm_screen = RemoveFileScreen(self._handle_button_click)
         
@@ -73,9 +70,6 @@ class GameManager:
         elif action == "edit":
             self.edit_screen.load_gestures()
             self.current_screen = self.edit_screen
-            pygame.mixer.Sound.play(self.click_sound)
-        elif action == "gesture_screen_model":
-            self.current_screen = self.gesture_screen_model
             pygame.mixer.Sound.play(self.click_sound)
         elif action == "practice_screen":
             self.practice_screen.load_resources()

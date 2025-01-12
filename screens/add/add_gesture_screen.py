@@ -46,11 +46,8 @@ class AddGestureScreen(BaseScreen):
         self.FACEPOINTS = mp.solutions.face_mesh_connections
         # https://github.com/google-ai-edge/mediapipe/blob/7c28c5d58ffbcb72043cbe8c9cc32b40aaebac41/mediapipe/python/solutions/face_mesh_connections.py
 
-        self.landmark_sections = [
-            self.FACEPOINTS.FACEMESH_LEFT_EYEBROW,
-            self.FACEPOINTS.FACEMESH_RIGHT_EYEBROW,
-        ]
-
+        self.landmark_sections = [self.FACEPOINTS.FACEMESH_LEFT_EYEBROW,
+                            self.FACEPOINTS.FACEMESH_RIGHT_EYEBROW]
         self.landmark_colors = [self.colors["red"], self.colors["green"]]
 
         self.frame_count = 30  # 只保留最近 30 幀(=1sec)的數據
@@ -68,14 +65,6 @@ class AddGestureScreen(BaseScreen):
             print("Cannot open camera, please check the device.")
             self.cap = None
 
-    def __drawMarks(self, frame, landmark):
-        # 將地標座標轉換為像素位置
-        h, w, _ = frame.shape  # 取得影像大小
-        x, y = int(landmark.x * w), int(landmark.y * h)
-
-        if self.debug_mode:  # 在畫面上畫圓標註地標（可不畫）
-            cv2.circle(frame, (x, y), 3, self.colors["green"], -1)
-        return x, y  # return 像素位置
 
     def draw(self, frame):
         frame.fill(0)
@@ -85,8 +74,6 @@ class AddGestureScreen(BaseScreen):
         else:
             # 如果背景圖片無法載入，使用白色背景
             frame[:] = (255, 255, 255)
-
-        # frame[:] = (50, 50, 50)  # Fill frame with gray
 
         # 繪製返回按鈕
         back_x, back_y = 1100, WINDOW_SIZE[1] - 100
@@ -110,9 +97,6 @@ class AddGestureScreen(BaseScreen):
         self.button_areas.append(
             (back_x, back_y, back_x + func_button_width, back_y + func_button_height)
         )
-
-        # Vertical separator line
-        # cv2.line(frame, (900, 0), (900, WINDOW_SIZE[1]), (200, 200, 200), 2)
 
         image = self.__face_tracking()
 
@@ -248,6 +232,16 @@ class AddGestureScreen(BaseScreen):
 
         return frame
 
+    def __drawMarks(self, frame, landmark):
+            # 將地標座標轉換為像素位置
+            h, w, _ = frame.shape  # 取得影像大小
+            x, y = int(landmark.x * w), int(landmark.y * h)
+        
+            if self.debug_mode: # 在畫面上畫圓標註地標（可不畫）
+                cv2.circle(frame, (x, y), 3, self.colors["green"], -1)
+            return x, y # return 像素位置
+
+
     def __record_gesture(self, hands_results, frame):
         print("Recoding ...")
         gesture_hand_points = {
@@ -277,10 +271,8 @@ class AddGestureScreen(BaseScreen):
 
                 if hand_type == "Left":
                     gesture_hand_points["left_d"] = array
-                    # gesture_hand_points["hand_num"] += 1
                 elif hand_type == "Right":
                     gesture_hand_points["right_d"] = array
-                    # gesture_hand_points["hand_num"] += 1
 
         # 開啟 Tkinter 視窗，讓使用者輸入招式名稱
         is_add, name_zh, name_en = self.__tk_get_char()
@@ -289,7 +281,6 @@ class AddGestureScreen(BaseScreen):
             return 0
 
         # 儲存圖片
-        # self.have_to_storage_image = True
         self.__image_storage(frame)
 
         # 儲存 json

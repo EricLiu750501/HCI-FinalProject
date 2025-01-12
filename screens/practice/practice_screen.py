@@ -1,11 +1,7 @@
 # screens/practice/practice_screen.py
 import cv2
-import numpy as np
-import copy
 from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE, FONT_BOLD
-from model.yolox.yolox_onnx import YoloxONNX
-import random
 import json
 import speech_recognition as sr
 from threading import Thread

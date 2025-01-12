@@ -1,7 +1,6 @@
 import cv2
 import json
 import tkinter as tk
-from tkinter import simpledialog, messagebox
 from screens.base_screen import BaseScreen
 from utils.constants import WINDOW_SIZE, FONT_BOLD
 from utils.CvDrawText import CvDrawText
