@@ -67,18 +67,7 @@ class ShowScreen(BaseScreen):
                 # display custom consequtive cam images
                 self.__display_consequtive_images(frame)
         else:
-            # show titles and play sound
-
-            # 添加標題
-            # CvDrawText.puttext(
-            #     frame,
-            #     f"{self.jutsu['name_zh']}",
-            #     (100, 100),
-            #     self.font_path,
-            #     48,
-            #     color=(255, 255, 255),
-            # )
-
+            # play sound
             if not self.sound_played:
                 # play sound
                 pygame.mixer.Sound.play(self.play_sound)
