@@ -73,4 +73,16 @@ project/
 pip install -r requirements.txt
 ```
 
-## 使用 Demo
+## 使用說明
+1. 先執行 main.py
+    
+    `python main.py`
+2. add screen 可以增加新手勢，比出手勢後點頭即可新增
+3. check screen 可以確認手勢能不能正確判斷，直接在鏡頭中比出手勢即可
+4. edit 可以將目前有的手勢編輯成一個招式序列，點擊手勢按鈕可以新增，新增完成並且命名後按下儲存按鈕即可完成操作
+5. Practice screen 可以練習招式，點擊麥克風後說出想要練習的招式名稱後便會跳轉到練習頁面，照著螢幕提示比完操作會跳出成功訊息
+
+
+## Demo 影片
+
+[DEMO 影片連結](https://drive.google.com/drive/folders/15BJ2MXs7_ieN6gtqdGIAjY0FDr7MHwPx?usp=sharing)
