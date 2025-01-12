@@ -266,17 +266,6 @@ class PerformJutsuScreen(BaseScreen):
                 continue
             else:
                 # draw an "→" + {gesture name}
-                # for →:
-                # CvDrawText.puttext(
-                #     frame,
-                #     "→",
-                #     (start_x, start_y),
-                #     self.font_path, 40, color
-                # )
-
-                # start_x += blank
-
-                # for {gesture name}
                 CvDrawText.puttext(
                     frame,
                     f"→  {self.gesture_labels[g_id]['g_name_zh']}",
