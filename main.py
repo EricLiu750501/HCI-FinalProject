@@ -5,7 +5,6 @@ import mediapipe as mp
 import pygame
 from screens.home_screen import HomeScreen
 
-# from screens.gesture_screen import GestureScreen
 from screens.practice.practice_screen import PracticeScreen
 from screens.gesture_model_screen import GestureScreen
 from screens.add.add_gesture_screen import AddGestureScreen
