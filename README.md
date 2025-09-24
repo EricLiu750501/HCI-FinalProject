@@ -86,3 +86,7 @@ pip install -r requirements.txt
 ## Demo 影片
 
 [DEMO 影片連結](https://drive.google.com/drive/folders/15BJ2MXs7_ieN6gtqdGIAjY0FDr7MHwPx?usp=sharing)
+
+## 報告連結
+
+[Final Presentation](https://www.canva.com/design/DAGbYI_ZRpc/ZomCxxDvSXNIrLPA5dfdmA/edit?ui=eyJEIjp7IlAiOnsiQiI6ZmFsc2V9fX0)
